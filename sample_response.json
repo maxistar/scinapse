@@ -1,0 +1,1450 @@
+{
+  "schema_version": "1.1",
+  "exploration_id": "exp_demo_001",
+  "is_demo": true,
+  "research_question": "How can single-cell methods explain melanoma immunotherapy response?",
+  "assessment_policy": {
+    "relevance_scope": "research_question",
+    "strength_comparison": "within_same_metric_and_method_version",
+    "confidence_definition": "Confidence that the stated relationship is supported by the inspected evidence.",
+    "quality_scoring": "dimension_based",
+    "institution_prestige_used_as_quality_score": false,
+    "missing_evidence": "unknown_or_not_assessed",
+    "relevance_scoring": {
+      "method": "weighted_rubric",
+      "version": "relevance_v1",
+      "range": [
+        0,
+        1
+      ],
+      "weights": {
+        "research_question_alignment": 0.4,
+        "disease_setting_alignment": 0.2,
+        "method_alignment": 0.2,
+        "outcome_alignment": 0.2
+      },
+      "formula": "Round the weighted sum of dimension scores to 2 decimal places.",
+      "missing_dimension_policy": "Return a null total if any required dimension is unknown.",
+      "assessment_thresholds": {
+        "highly_relevant": [
+          0.8,
+          1.0
+        ],
+        "potentially_relevant": [
+          0.5,
+          0.8
+        ],
+        "indirectly_relevant": [
+          0.2,
+          0.5
+        ],
+        "not_relevant": [
+          0.0,
+          0.2
+        ]
+      },
+      "threshold_interpretation": "Lower bounds inclusive; upper bounds exclusive except 1.0.",
+      "interpretation": "Alignment with this research question; not a probability or paper quality score.",
+      "provenance": "fictional_demo_ratings"
+    },
+    "edge_display_scoring": {
+      "method": "relationship_priority_v1",
+      "range": [
+        0,
+        1
+      ],
+      "rules": {
+        "cites": {
+          "formula": "0.90 when a citation record is available; otherwise null"
+        },
+        "similar_to": {
+          "formula": "round(0.85 * (strength.value + 1) / 2, 4)",
+          "input_metric": "abstract_cosine_similarity"
+        },
+        "shared_references": {
+          "formula": "round(0.80 * strength.value, 4)",
+          "input_metric": "reference_jaccard"
+        }
+      },
+      "interpretation": "UI relationship priority; not scientific strength or confidence. Citation links receive a fixed display priority.",
+      "provenance": "fictional_demo"
+    }
+  },
+  "nodes": [
+    {
+      "id": "paper_001",
+      "title": "Single-cell atlas of melanoma immune cells",
+      "authors": [
+        {
+          "id": "author_001",
+          "name": "Demo Author A",
+          "orcid": null,
+          "affiliation_ids": [
+            "institution_001"
+          ]
+        }
+      ],
+      "institutions": [
+        {
+          "id": "institution_001",
+          "name": "Demo Tumour Immunology Institute",
+          "ror": null,
+          "verification_status": "demo"
+        }
+      ],
+      "year": 2019,
+      "journal": "Demo Cancer Research",
+      "identifiers": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": null
+      },
+      "is_seed": true,
+      "url": "https://example.org/papers/001",
+      "abstract_available": true,
+      "abstract": {
+        "text": "We used single-cell RNA sequencing to characterize immune-cell populations in melanoma samples. Distinct T-cell states were observed across patients.",
+        "source_url": "https://example.org/papers/001",
+        "provenance": "fictional_demo"
+      },
+      "topics": [
+        "melanoma",
+        "immune-cell diversity"
+      ],
+      "methods": [
+        "single-cell RNA sequencing"
+      ],
+      "publication_status": {
+        "type": "journal_article",
+        "peer_review": "unknown",
+        "correction_status": "not_checked",
+        "retraction_status": "not_checked"
+      },
+      "relevance": {
+        "status": "ready",
+        "assessment": "potentially_relevant",
+        "reason": "Characterizes melanoma immune-cell states that could provide context for studying treatment response.",
+        "supporting_evidence_ids": [
+          "ev_001"
+        ],
+        "uncertainties": [
+          "The abstract does not describe treatment-response measurements."
+        ],
+        "score": 0.76,
+        "scale": {
+          "min": 0,
+          "max": 1
+        },
+        "dimensions": {
+          "research_question_alignment": 0.8,
+          "disease_setting_alignment": 1.0,
+          "method_alignment": 1.0,
+          "outcome_alignment": 0.2
+        },
+        "scoring": {
+          "method": "weighted_rubric",
+          "version": "relevance_v1",
+          "weights": {
+            "research_question_alignment": 0.4,
+            "disease_setting_alignment": 0.2,
+            "method_alignment": 0.2,
+            "outcome_alignment": 0.2
+          },
+          "provenance": "fictional_demo_ratings"
+        }
+      },
+      "research_assessment": {
+        "status": "partial",
+        "overall_score": null,
+        "summary": "Provides relevant biological context; methodological quality has not been established.",
+        "dimensions": {
+          "methodological_rigor": {
+            "assessment": "not_assessed",
+            "reason": "Full methods, controls, and analysis were not inspected.",
+            "evidence_ids": []
+          },
+          "evidence_strength": {
+            "assessment": "not_assessed",
+            "reason": "Results and statistical analyses were not inspected.",
+            "evidence_ids": []
+          },
+          "transparency": {
+            "assessment": "unknown",
+            "reason": "Data and code availability have not been checked.",
+            "evidence_ids": []
+          },
+          "author_institution_context": {
+            "assessment": "unverified",
+            "reason": "Author identities, affiliations, and relevant prior work are fictional demo metadata.",
+            "evidence_ids": []
+          },
+          "independent_validation": {
+            "assessment": "not_assessed",
+            "reason": "Independent validation has not been investigated.",
+            "evidence_ids": []
+          }
+        },
+        "evaluated_from": [
+          "abstract"
+        ],
+        "limitations": [
+          "Citation connections do not establish research quality."
+        ],
+        "assessment_method": "demo"
+      },
+      "review": {
+        "saved": false,
+        "decision": null,
+        "note": null
+      }
+    },
+    {
+      "id": "paper_002",
+      "title": "T-cell states associated with immunotherapy response",
+      "authors": [
+        {
+          "id": "author_002",
+          "name": "Demo Author B",
+          "orcid": null,
+          "affiliation_ids": [
+            "institution_002"
+          ]
+        }
+      ],
+      "institutions": [
+        {
+          "id": "institution_002",
+          "name": "Demo Cancer Systems Laboratory",
+          "ror": null,
+          "verification_status": "demo"
+        }
+      ],
+      "year": 2020,
+      "journal": "Demo Immunotherapy Studies",
+      "identifiers": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": null
+      },
+      "is_seed": true,
+      "url": "https://example.org/papers/002",
+      "abstract_available": true,
+      "abstract": {
+        "text": "We profiled tumour-infiltrating T cells using single-cell RNA sequencing in melanoma patients receiving immunotherapy. T-cell states were associated with treatment response.",
+        "source_url": "https://example.org/papers/002",
+        "provenance": "fictional_demo"
+      },
+      "topics": [
+        "melanoma",
+        "T-cell states",
+        "immunotherapy response"
+      ],
+      "methods": [
+        "single-cell RNA sequencing"
+      ],
+      "publication_status": {
+        "type": "journal_article",
+        "peer_review": "unknown",
+        "correction_status": "not_checked",
+        "retraction_status": "not_checked"
+      },
+      "relevance": {
+        "status": "ready",
+        "assessment": "highly_relevant",
+        "reason": "Directly connects single-cell T-cell profiles with melanoma immunotherapy response.",
+        "supporting_evidence_ids": [
+          "ev_002"
+        ],
+        "uncertainties": [
+          "An association does not establish a causal mechanism."
+        ],
+        "score": 0.98,
+        "scale": {
+          "min": 0,
+          "max": 1
+        },
+        "dimensions": {
+          "research_question_alignment": 1.0,
+          "disease_setting_alignment": 1.0,
+          "method_alignment": 1.0,
+          "outcome_alignment": 0.9
+        },
+        "scoring": {
+          "method": "weighted_rubric",
+          "version": "relevance_v1",
+          "weights": {
+            "research_question_alignment": 0.4,
+            "disease_setting_alignment": 0.2,
+            "method_alignment": 0.2,
+            "outcome_alignment": 0.2
+          },
+          "provenance": "fictional_demo_ratings"
+        }
+      },
+      "research_assessment": {
+        "status": "partial",
+        "overall_score": null,
+        "summary": "Direct topical relevance is supported; study quality requires additional evidence.",
+        "dimensions": {
+          "methodological_rigor": {
+            "assessment": "not_assessed",
+            "reason": "Cohort selection, controls, and analytical methods were not inspected.",
+            "evidence_ids": []
+          },
+          "evidence_strength": {
+            "assessment": "not_assessed",
+            "reason": "Effect sizes, uncertainty estimates, and validation results were not inspected.",
+            "evidence_ids": []
+          },
+          "transparency": {
+            "assessment": "unknown",
+            "reason": "Data and code availability have not been checked.",
+            "evidence_ids": []
+          },
+          "author_institution_context": {
+            "assessment": "unverified",
+            "reason": "Author identities, affiliations, and relevant prior work are fictional demo metadata.",
+            "evidence_ids": []
+          },
+          "independent_validation": {
+            "assessment": "not_assessed",
+            "reason": "Independent validation has not been investigated.",
+            "evidence_ids": []
+          }
+        },
+        "evaluated_from": [
+          "abstract"
+        ],
+        "limitations": [
+          "Topical relevance is separate from methodological quality."
+        ],
+        "assessment_method": "demo"
+      },
+      "review": {
+        "saved": false,
+        "decision": null,
+        "note": null
+      }
+    },
+    {
+      "id": "paper_003",
+      "title": "Predicting melanoma response from single-cell T-cell profiles",
+      "authors": [
+        {
+          "id": "author_003",
+          "name": "Demo Author C",
+          "orcid": null,
+          "affiliation_ids": [
+            "institution_003"
+          ]
+        }
+      ],
+      "institutions": [
+        {
+          "id": "institution_003",
+          "name": "Demo Computational Oncology Laboratory",
+          "ror": null,
+          "verification_status": "demo"
+        }
+      ],
+      "year": 2022,
+      "journal": "Demo Translational Oncology",
+      "identifiers": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": null
+      },
+      "is_seed": false,
+      "url": "https://example.org/papers/003",
+      "abstract_available": true,
+      "abstract": {
+        "text": "We developed a prediction model using single-cell T-cell profiles from melanoma patients receiving immunotherapy. Predictive performance was evaluated in a separate patient cohort.",
+        "source_url": "https://example.org/papers/003",
+        "provenance": "fictional_demo"
+      },
+      "topics": [
+        "melanoma",
+        "response prediction",
+        "T-cell states"
+      ],
+      "methods": [
+        "single-cell RNA sequencing",
+        "predictive modelling"
+      ],
+      "publication_status": {
+        "type": "journal_article",
+        "peer_review": "unknown",
+        "correction_status": "not_checked",
+        "retraction_status": "not_checked"
+      },
+      "relevance": {
+        "status": "ready",
+        "assessment": "highly_relevant",
+        "reason": "Uses single-cell T-cell profiles to investigate prediction of melanoma immunotherapy response.",
+        "supporting_evidence_ids": [
+          "ev_003"
+        ],
+        "uncertainties": [
+          "The abstract does not provide cohort sizes or performance estimates.",
+          "Validation in a separate cohort does not establish independent replication."
+        ],
+        "score": 0.88,
+        "scale": {
+          "min": 0,
+          "max": 1
+        },
+        "dimensions": {
+          "research_question_alignment": 0.95,
+          "disease_setting_alignment": 1.0,
+          "method_alignment": 0.8,
+          "outcome_alignment": 0.7
+        },
+        "scoring": {
+          "method": "weighted_rubric",
+          "version": "relevance_v1",
+          "weights": {
+            "research_question_alignment": 0.4,
+            "disease_setting_alignment": 0.2,
+            "method_alignment": 0.2,
+            "outcome_alignment": 0.2
+          },
+          "provenance": "fictional_demo_ratings"
+        }
+      },
+      "research_assessment": {
+        "status": "partial",
+        "overall_score": null,
+        "summary": "A separate evaluation cohort is reported, but the design and predictive performance remain unassessed.",
+        "dimensions": {
+          "methodological_rigor": {
+            "assessment": "partial_evidence",
+            "reason": "The abstract reports evaluation in a separate cohort; leakage controls and cohort independence require inspection.",
+            "evidence_ids": [
+              "ev_004"
+            ]
+          },
+          "evidence_strength": {
+            "assessment": "not_assessed",
+            "reason": "Performance estimates, baselines, and uncertainty intervals were not retrieved.",
+            "evidence_ids": []
+          },
+          "transparency": {
+            "assessment": "unknown",
+            "reason": "Data, code, and model availability have not been checked.",
+            "evidence_ids": []
+          },
+          "author_institution_context": {
+            "assessment": "unverified",
+            "reason": "Author identities, affiliations, and relevant prior work are fictional demo metadata.",
+            "evidence_ids": []
+          },
+          "independent_validation": {
+            "assessment": "not_assessed",
+            "reason": "No assessment of replication by an independent research team has been performed.",
+            "evidence_ids": []
+          }
+        },
+        "evaluated_from": [
+          "abstract"
+        ],
+        "limitations": [
+          "Reported validation procedures have not been verified against the full text."
+        ],
+        "assessment_method": "demo"
+      },
+      "review": {
+        "saved": true,
+        "decision": "useful",
+        "note": "Inspect the validation design and compare it with the starting papers."
+      }
+    },
+    {
+      "id": "paper_004",
+      "title": "Spatial mapping of immune resistance in melanoma",
+      "authors": [
+        {
+          "id": "author_004",
+          "name": "Demo Author D",
+          "orcid": null,
+          "affiliation_ids": [
+            "institution_004"
+          ]
+        }
+      ],
+      "institutions": [
+        {
+          "id": "institution_004",
+          "name": "Demo Spatial Biology Centre",
+          "ror": null,
+          "verification_status": "demo"
+        }
+      ],
+      "year": 2023,
+      "journal": "Demo Spatial Biology",
+      "identifiers": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": null
+      },
+      "is_seed": false,
+      "url": "https://example.org/papers/004",
+      "abstract_available": true,
+      "abstract": {
+        "text": "We combined spatial profiling with single-cell RNA sequencing to map immune-cell states in melanoma. Spatial patterns were associated with resistance to immunotherapy.",
+        "source_url": "https://example.org/papers/004",
+        "provenance": "fictional_demo"
+      },
+      "topics": [
+        "melanoma",
+        "immune resistance",
+        "spatial context"
+      ],
+      "methods": [
+        "spatial profiling",
+        "single-cell RNA sequencing"
+      ],
+      "publication_status": {
+        "type": "preprint",
+        "peer_review": "not_peer_reviewed",
+        "correction_status": "not_checked",
+        "retraction_status": "not_checked"
+      },
+      "relevance": {
+        "status": "ready",
+        "assessment": "highly_relevant",
+        "reason": "Adds spatial information to single-cell analysis of melanoma immunotherapy resistance.",
+        "supporting_evidence_ids": [
+          "ev_005"
+        ],
+        "uncertainties": [
+          "The abstract does not establish whether spatial patterns improve response prediction."
+        ],
+        "score": 0.88,
+        "scale": {
+          "min": 0,
+          "max": 1
+        },
+        "dimensions": {
+          "research_question_alignment": 0.9,
+          "disease_setting_alignment": 1.0,
+          "method_alignment": 0.8,
+          "outcome_alignment": 0.8
+        },
+        "scoring": {
+          "method": "weighted_rubric",
+          "version": "relevance_v1",
+          "weights": {
+            "research_question_alignment": 0.4,
+            "disease_setting_alignment": 0.2,
+            "method_alignment": 0.2,
+            "outcome_alignment": 0.2
+          },
+          "provenance": "fictional_demo_ratings"
+        }
+      },
+      "research_assessment": {
+        "status": "partial",
+        "overall_score": null,
+        "summary": "Relevant methods and disease setting are described; research quality remains unassessed.",
+        "dimensions": {
+          "methodological_rigor": {
+            "assessment": "not_assessed",
+            "reason": "Sampling, integration methods, and controls were not inspected.",
+            "evidence_ids": []
+          },
+          "evidence_strength": {
+            "assessment": "not_assessed",
+            "reason": "Statistical support for the reported associations was not inspected.",
+            "evidence_ids": []
+          },
+          "transparency": {
+            "assessment": "unknown",
+            "reason": "Data and code availability have not been checked.",
+            "evidence_ids": []
+          },
+          "author_institution_context": {
+            "assessment": "unverified",
+            "reason": "Author identities, affiliations, and relevant prior work are fictional demo metadata.",
+            "evidence_ids": []
+          },
+          "independent_validation": {
+            "assessment": "not_assessed",
+            "reason": "Independent validation has not been investigated.",
+            "evidence_ids": []
+          }
+        },
+        "evaluated_from": [
+          "abstract"
+        ],
+        "limitations": [
+          "This demo record represents a preprint.",
+          "Publication status alone does not establish methodological quality."
+        ],
+        "assessment_method": "demo"
+      },
+      "review": {
+        "saved": false,
+        "decision": null,
+        "note": null
+      }
+    },
+    {
+      "id": "paper_005",
+      "title": "Longitudinal tracking of exhausted T cells",
+      "authors": [],
+      "institutions": [],
+      "year": 2024,
+      "journal": null,
+      "identifiers": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": null
+      },
+      "is_seed": false,
+      "url": "https://example.org/papers/005",
+      "abstract_available": false,
+      "abstract": null,
+      "topics": [],
+      "methods": [],
+      "publication_status": {
+        "type": "unknown",
+        "peer_review": "unknown",
+        "correction_status": "not_checked",
+        "retraction_status": "not_checked"
+      },
+      "relevance": {
+        "status": "insufficient_evidence",
+        "assessment": "uncertain",
+        "reason": "The title suggests a possible connection to T-cell states, but the disease setting and methods are unknown.",
+        "supporting_evidence_ids": [
+          "ev_006"
+        ],
+        "uncertainties": [
+          "No abstract was retrieved.",
+          "Melanoma and immunotherapy relevance could not be established."
+        ],
+        "score": null,
+        "scale": {
+          "min": 0,
+          "max": 1
+        },
+        "dimensions": {
+          "research_question_alignment": null,
+          "disease_setting_alignment": null,
+          "method_alignment": null,
+          "outcome_alignment": null
+        },
+        "scoring": {
+          "method": "weighted_rubric",
+          "version": "relevance_v1",
+          "weights": {
+            "research_question_alignment": 0.4,
+            "disease_setting_alignment": 0.2,
+            "method_alignment": 0.2,
+            "outcome_alignment": 0.2
+          },
+          "provenance": "fictional_demo_ratings"
+        }
+      },
+      "research_assessment": {
+        "status": "insufficient_evidence",
+        "overall_score": null,
+        "summary": "Available metadata is insufficient to assess research quality.",
+        "dimensions": {
+          "methodological_rigor": {
+            "assessment": "not_assessed",
+            "reason": "Neither an abstract nor full methods were retrieved.",
+            "evidence_ids": []
+          },
+          "evidence_strength": {
+            "assessment": "not_assessed",
+            "reason": "Study results were not retrieved.",
+            "evidence_ids": []
+          },
+          "transparency": {
+            "assessment": "unknown",
+            "reason": "Data and code availability have not been checked.",
+            "evidence_ids": []
+          },
+          "author_institution_context": {
+            "assessment": "unknown",
+            "reason": "Author and affiliation metadata were not retrieved.",
+            "evidence_ids": []
+          },
+          "independent_validation": {
+            "assessment": "not_assessed",
+            "reason": "Independent validation has not been investigated.",
+            "evidence_ids": []
+          }
+        },
+        "evaluated_from": [
+          "title"
+        ],
+        "limitations": [
+          "Missing evidence is not evidence of poor quality."
+        ],
+        "assessment_method": "demo"
+      },
+      "review": {
+        "saved": false,
+        "decision": "uncertain",
+        "note": "Retrieve the abstract before assessing relevance."
+      }
+    },
+    {
+      "id": "paper_006",
+      "title": "Single-cell immune profiling in lung cancer",
+      "authors": [
+        {
+          "id": "author_006",
+          "name": "Demo Author F",
+          "orcid": null,
+          "affiliation_ids": [
+            "institution_006"
+          ]
+        }
+      ],
+      "institutions": [
+        {
+          "id": "institution_006",
+          "name": "Demo Pulmonary Oncology Laboratory",
+          "ror": null,
+          "verification_status": "demo"
+        }
+      ],
+      "year": 2023,
+      "journal": "Demo Cancer Methods",
+      "identifiers": {
+        "doi": null,
+        "pmid": null,
+        "pmcid": null
+      },
+      "is_seed": false,
+      "url": "https://example.org/papers/006",
+      "abstract_available": true,
+      "abstract": {
+        "text": "We used single-cell RNA sequencing to characterize immune-cell populations in lung cancer. This study did not investigate melanoma or immunotherapy response.",
+        "source_url": "https://example.org/papers/006",
+        "provenance": "fictional_demo"
+      },
+      "topics": [
+        "lung cancer",
+        "immune-cell diversity"
+      ],
+      "methods": [
+        "single-cell RNA sequencing"
+      ],
+      "publication_status": {
+        "type": "journal_article",
+        "peer_review": "unknown",
+        "correction_status": "not_checked",
+        "retraction_status": "not_checked"
+      },
+      "relevance": {
+        "status": "ready",
+        "assessment": "indirectly_relevant",
+        "reason": "Shares a profiling method with the starting collection, but investigates another disease and does not assess treatment response.",
+        "supporting_evidence_ids": [
+          "ev_007"
+        ],
+        "uncertainties": [
+          "Transferability of the method to the research question has not been assessed."
+        ],
+        "score": 0.28,
+        "scale": {
+          "min": 0,
+          "max": 1
+        },
+        "dimensions": {
+          "research_question_alignment": 0.2,
+          "disease_setting_alignment": 0.0,
+          "method_alignment": 1.0,
+          "outcome_alignment": 0.0
+        },
+        "scoring": {
+          "method": "weighted_rubric",
+          "version": "relevance_v1",
+          "weights": {
+            "research_question_alignment": 0.4,
+            "disease_setting_alignment": 0.2,
+            "method_alignment": 0.2,
+            "outcome_alignment": 0.2
+          },
+          "provenance": "fictional_demo_ratings"
+        }
+      },
+      "research_assessment": {
+        "status": "partial",
+        "overall_score": null,
+        "summary": "Method similarity is supported; research quality remains unassessed.",
+        "dimensions": {
+          "methodological_rigor": {
+            "assessment": "not_assessed",
+            "reason": "Full methods and controls were not inspected.",
+            "evidence_ids": []
+          },
+          "evidence_strength": {
+            "assessment": "not_assessed",
+            "reason": "Study results and statistical analyses were not inspected.",
+            "evidence_ids": []
+          },
+          "transparency": {
+            "assessment": "unknown",
+            "reason": "Data and code availability have not been checked.",
+            "evidence_ids": []
+          },
+          "author_institution_context": {
+            "assessment": "unverified",
+            "reason": "Author identities, affiliations, and relevant prior work are fictional demo metadata.",
+            "evidence_ids": []
+          },
+          "independent_validation": {
+            "assessment": "not_assessed",
+            "reason": "Independent validation has not been investigated.",
+            "evidence_ids": []
+          }
+        },
+        "evaluated_from": [
+          "abstract"
+        ],
+        "limitations": [
+          "Lower relevance to this question does not imply lower research quality."
+        ],
+        "assessment_method": "demo"
+      },
+      "review": {
+        "saved": false,
+        "decision": null,
+        "note": null
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_003_001_cites",
+      "source": "paper_003",
+      "target": "paper_001",
+      "type": "cites",
+      "directed": true,
+      "reasoning": {
+        "summary": "The candidate includes the starting atlas in its reference list.",
+        "supporting_evidence_ids": [
+          "ev_008"
+        ],
+        "limitations": [
+          "Citation context was not inspected; influence or agreement cannot be inferred."
+        ]
+      },
+      "strength": {
+        "status": "not_applicable",
+        "value": null,
+        "metric": "citation_exists",
+        "method_version": null,
+        "explanation": "Citation existence is binary; substantive influence has not been assessed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "The citation record is fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": "https://example.org/papers/003/references",
+        "evidence_ids": [
+          "ev_008"
+        ]
+      },
+      "display_score": {
+        "value": 0.9,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_003_002_cites",
+      "source": "paper_003",
+      "target": "paper_002",
+      "type": "cites",
+      "directed": true,
+      "reasoning": {
+        "summary": "The candidate includes the starting treatment-response paper in its reference list.",
+        "supporting_evidence_ids": [
+          "ev_008"
+        ],
+        "limitations": [
+          "The reason for the citation has not been established."
+        ]
+      },
+      "strength": {
+        "status": "not_applicable",
+        "value": null,
+        "metric": "citation_exists",
+        "method_version": null,
+        "explanation": "Citation existence is binary; substantive influence has not been assessed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "The citation record is fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": "https://example.org/papers/003/references",
+        "evidence_ids": [
+          "ev_008"
+        ]
+      },
+      "display_score": {
+        "value": 0.9,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_004_001_cites",
+      "source": "paper_004",
+      "target": "paper_001",
+      "type": "cites",
+      "directed": true,
+      "reasoning": {
+        "summary": "The spatial profiling candidate references the starting melanoma atlas.",
+        "supporting_evidence_ids": [
+          "ev_009"
+        ],
+        "limitations": [
+          "The citation does not establish agreement with the cited findings."
+        ]
+      },
+      "strength": {
+        "status": "not_applicable",
+        "value": null,
+        "metric": "citation_exists",
+        "method_version": null,
+        "explanation": "Citation existence is binary; substantive influence has not been assessed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "The citation record is fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": "https://example.org/papers/004/references",
+        "evidence_ids": [
+          "ev_009"
+        ]
+      },
+      "display_score": {
+        "value": 0.9,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_004_002_cites",
+      "source": "paper_004",
+      "target": "paper_002",
+      "type": "cites",
+      "directed": true,
+      "reasoning": {
+        "summary": "The spatial profiling candidate references the starting treatment-response paper.",
+        "supporting_evidence_ids": [
+          "ev_009"
+        ],
+        "limitations": [
+          "The substantive role of this reference has not been assessed."
+        ]
+      },
+      "strength": {
+        "status": "not_applicable",
+        "value": null,
+        "metric": "citation_exists",
+        "method_version": null,
+        "explanation": "Citation existence is binary; substantive influence has not been assessed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "The citation record is fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": "https://example.org/papers/004/references",
+        "evidence_ids": [
+          "ev_009"
+        ]
+      },
+      "display_score": {
+        "value": 0.9,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_005_002_cites",
+      "source": "paper_005",
+      "target": "paper_002",
+      "type": "cites",
+      "directed": true,
+      "reasoning": {
+        "summary": "The available reference record connects this paper to a starting paper, despite its missing abstract.",
+        "supporting_evidence_ids": [
+          "ev_010"
+        ],
+        "limitations": [
+          "The citation alone cannot establish topical relevance."
+        ]
+      },
+      "strength": {
+        "status": "not_applicable",
+        "value": null,
+        "metric": "citation_exists",
+        "method_version": null,
+        "explanation": "Citation existence is binary; substantive influence has not been assessed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "The citation record is fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": "https://example.org/papers/005/references",
+        "evidence_ids": [
+          "ev_010"
+        ]
+      },
+      "display_score": {
+        "value": 0.9,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_003_004_similarity",
+      "source": "paper_003",
+      "target": "paper_004",
+      "type": "similar_to",
+      "directed": false,
+      "reasoning": {
+        "summary": "Both examine melanoma immunotherapy using single-cell immune profiling, with different prediction and spatial objectives.",
+        "shared_topics": [
+          "melanoma",
+          "immunotherapy response"
+        ],
+        "shared_methods": [
+          "single-cell RNA sequencing"
+        ],
+        "supporting_evidence_ids": [
+          "ev_003",
+          "ev_005"
+        ],
+        "limitations": [
+          "Shared abstract content does not establish equivalent findings."
+        ]
+      },
+      "strength": {
+        "status": "demo",
+        "value": 0.84,
+        "metric": "abstract_cosine_similarity",
+        "range": [
+          -1,
+          1
+        ],
+        "method_version": "demo-embedding-v1",
+        "explanation": "Illustrative similarity value; no embeddings were computed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "Supporting passages are provided, but the relationship has not been independently evaluated."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": null,
+        "evidence_ids": [
+          "ev_003",
+          "ev_005"
+        ]
+      },
+      "display_score": {
+        "value": 0.782,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_001_006_similarity",
+      "source": "paper_001",
+      "target": "paper_006",
+      "type": "similar_to",
+      "directed": false,
+      "reasoning": {
+        "summary": "Both characterize tumour immune-cell populations with single-cell RNA sequencing, but study different cancers.",
+        "shared_topics": [
+          "immune-cell diversity"
+        ],
+        "shared_methods": [
+          "single-cell RNA sequencing"
+        ],
+        "supporting_evidence_ids": [
+          "ev_001",
+          "ev_007"
+        ],
+        "limitations": [
+          "Method similarity does not establish direct relevance to melanoma immunotherapy response."
+        ]
+      },
+      "strength": {
+        "status": "demo",
+        "value": 0.71,
+        "metric": "abstract_cosine_similarity",
+        "range": [
+          -1,
+          1
+        ],
+        "method_version": "demo-embedding-v1",
+        "explanation": "Illustrative similarity value; no embeddings were computed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "The shared method is described in the demo abstracts; transferability has not been assessed."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": null,
+        "evidence_ids": [
+          "ev_001",
+          "ev_007"
+        ]
+      },
+      "display_score": {
+        "value": 0.7268,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_003_001_similarity",
+      "source": "paper_003",
+      "target": "paper_001",
+      "type": "similar_to",
+      "directed": false,
+      "reasoning": {
+        "summary": "Both profile melanoma immune cells using single-cell methods; the candidate focuses on treatment-response prediction.",
+        "supporting_evidence_ids": [
+          "ev_003",
+          "ev_001"
+        ],
+        "limitations": [
+          "Abstract similarity does not establish equivalent findings or scientific agreement."
+        ]
+      },
+      "strength": {
+        "status": "demo",
+        "value": 0.84,
+        "metric": "abstract_cosine_similarity",
+        "range": [
+          -1,
+          1
+        ],
+        "method_version": "demo-embedding-v1",
+        "explanation": "Illustrative similarity value; no embeddings were computed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "This relationship and its score are fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": null,
+        "evidence_ids": [
+          "ev_003",
+          "ev_001"
+        ]
+      },
+      "display_score": {
+        "value": 0.782,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_003_002_similarity",
+      "source": "paper_003",
+      "target": "paper_002",
+      "type": "similar_to",
+      "directed": false,
+      "reasoning": {
+        "summary": "Both connect single-cell T-cell profiles with melanoma immunotherapy response.",
+        "supporting_evidence_ids": [
+          "ev_003",
+          "ev_002"
+        ],
+        "limitations": [
+          "Abstract similarity does not establish equivalent findings or scientific agreement."
+        ]
+      },
+      "strength": {
+        "status": "demo",
+        "value": 0.91,
+        "metric": "abstract_cosine_similarity",
+        "range": [
+          -1,
+          1
+        ],
+        "method_version": "demo-embedding-v1",
+        "explanation": "Illustrative similarity value; no embeddings were computed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "This relationship and its score are fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": null,
+        "evidence_ids": [
+          "ev_003",
+          "ev_002"
+        ]
+      },
+      "display_score": {
+        "value": 0.8118,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_004_002_similarity",
+      "source": "paper_004",
+      "target": "paper_002",
+      "type": "similar_to",
+      "directed": false,
+      "reasoning": {
+        "summary": "Both study melanoma immune-cell states and immunotherapy outcomes; the candidate adds spatial context.",
+        "supporting_evidence_ids": [
+          "ev_005",
+          "ev_002"
+        ],
+        "limitations": [
+          "Abstract similarity does not establish equivalent findings or scientific agreement."
+        ]
+      },
+      "strength": {
+        "status": "demo",
+        "value": 0.8,
+        "metric": "abstract_cosine_similarity",
+        "range": [
+          -1,
+          1
+        ],
+        "method_version": "demo-embedding-v1",
+        "explanation": "Illustrative similarity value; no embeddings were computed."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "This relationship and its score are fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": null,
+        "evidence_ids": [
+          "ev_005",
+          "ev_002"
+        ]
+      },
+      "display_score": {
+        "value": 0.765,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    },
+    {
+      "id": "edge_003_004_shared_references",
+      "source": "paper_003",
+      "target": "paper_004",
+      "type": "shared_references",
+      "directed": false,
+      "reasoning": {
+        "summary": "Both demo reference lists contain paper_001 and paper_002.",
+        "shared_reference_ids": [
+          "paper_001",
+          "paper_002"
+        ],
+        "supporting_evidence_ids": [
+          "ev_008",
+          "ev_009"
+        ],
+        "limitations": [
+          "Overlap uses only the supplied demo reference lists; real reference lists may be incomplete."
+        ]
+      },
+      "strength": {
+        "status": "demo",
+        "value": 1.0,
+        "metric": "reference_jaccard",
+        "range": [
+          0,
+          1
+        ],
+        "method_version": "reference-jaccard-v1",
+        "components": {
+          "intersection_count": 2,
+          "union_count": 2
+        },
+        "explanation": "Shared references divided by the union of references in the supplied demo lists: 2 / 2."
+      },
+      "confidence": {
+        "level": "not_assessed",
+        "reason": "The reference lists are fictional demo data."
+      },
+      "verification": {
+        "status": "demo",
+        "provider": "mock",
+        "source_url": null,
+        "evidence_ids": [
+          "ev_008",
+          "ev_009"
+        ]
+      },
+      "display_score": {
+        "value": 0.8,
+        "method": "relationship_priority_v1",
+        "provenance": "fictional_demo"
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev_001",
+      "type": "text_passage",
+      "paper_id": "paper_001",
+      "source_field": "abstract",
+      "quote": "We used single-cell RNA sequencing to characterize immune-cell populations in melanoma samples.",
+      "source_url": "https://example.org/papers/001",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_002",
+      "type": "text_passage",
+      "paper_id": "paper_002",
+      "source_field": "abstract",
+      "quote": "We profiled tumour-infiltrating T cells using single-cell RNA sequencing in melanoma patients receiving immunotherapy. T-cell states were associated with treatment response.",
+      "source_url": "https://example.org/papers/002",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_003",
+      "type": "text_passage",
+      "paper_id": "paper_003",
+      "source_field": "abstract",
+      "quote": "We developed a prediction model using single-cell T-cell profiles from melanoma patients receiving immunotherapy.",
+      "source_url": "https://example.org/papers/003",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_004",
+      "type": "text_passage",
+      "paper_id": "paper_003",
+      "source_field": "abstract",
+      "quote": "Predictive performance was evaluated in a separate patient cohort.",
+      "source_url": "https://example.org/papers/003",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_005",
+      "type": "text_passage",
+      "paper_id": "paper_004",
+      "source_field": "abstract",
+      "quote": "We combined spatial profiling with single-cell RNA sequencing to map immune-cell states in melanoma. Spatial patterns were associated with resistance to immunotherapy.",
+      "source_url": "https://example.org/papers/004",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_006",
+      "type": "text_passage",
+      "paper_id": "paper_005",
+      "source_field": "title",
+      "quote": "Longitudinal tracking of exhausted T cells",
+      "source_url": "https://example.org/papers/005",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_007",
+      "type": "text_passage",
+      "paper_id": "paper_006",
+      "source_field": "abstract",
+      "quote": "We used single-cell RNA sequencing to characterize immune-cell populations in lung cancer. This study did not investigate melanoma or immunotherapy response.",
+      "source_url": "https://example.org/papers/006",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_008",
+      "type": "reference_list",
+      "paper_id": "paper_003",
+      "referenced_paper_ids": [
+        "paper_001",
+        "paper_002"
+      ],
+      "source_url": "https://example.org/papers/003/references",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_009",
+      "type": "reference_list",
+      "paper_id": "paper_004",
+      "referenced_paper_ids": [
+        "paper_001",
+        "paper_002"
+      ],
+      "source_url": "https://example.org/papers/004/references",
+      "provenance": "fictional_demo"
+    },
+    {
+      "id": "ev_010",
+      "type": "reference_list",
+      "paper_id": "paper_005",
+      "referenced_paper_ids": [
+        "paper_002"
+      ],
+      "source_url": "https://example.org/papers/005/references",
+      "provenance": "fictional_demo"
+    }
+  ],
+  "next_cursor": null,
+  "warnings": [
+    {
+      "code": "DEMO_DATA",
+      "node_id": null,
+      "message": "All records, relationships, passages, and scores are fictional."
+    },
+    {
+      "code": "ABSTRACT_UNAVAILABLE",
+      "node_id": "paper_005",
+      "message": "Relevance and research quality cannot be adequately assessed from the retrieved title."
+    },
+    {
+      "code": "PARTIAL_QUALITY_ASSESSMENT",
+      "node_id": null,
+      "message": "Full methods, results, author credentials, affiliations, and independent validation have not been verified."
+    }
+  ],
+  "graph_view": {
+    "edge_display": {
+      "mode": "strongest_per_node_pair",
+      "group_by": "unordered_node_pair",
+      "selection_field": "display_score.value",
+      "selection_order": "descending",
+      "null_scores": "exclude_from_default_selection",
+      "tie_breaker": "edge_id_ascending",
+      "preserve_selected_edge_direction": true,
+      "show_hidden_relationship_count": true,
+      "details_panel": "show_all_edges_including_reverse_directions",
+      "relationship_filter": "apply_before_selection"
+    }
+  }
+}
