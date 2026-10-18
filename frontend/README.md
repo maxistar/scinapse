@@ -12,6 +12,17 @@ npm run dev
 
 Open the local URL printed by Vite. Run `npm run build` for a production build, `npm run preview` to serve it, and `npm test` for the graph-selection and timeline checks (Node.js 22.18+ or 24+).
 
+## Run with Docker
+
+Build the production image from the repository root so the build can include the root dataset:
+
+```sh
+docker build -f frontend/Dockerfile -t scinapse-frontend .
+docker run --rm -p 8080:80 scinapse-frontend
+```
+
+Open <http://localhost:8080>. The dataset is bundled during the image build, so rebuild the image after changing `sample_response.large.json`.
+
 ## Research setup
 
 New sessions open a minimal search page. Enter a question or expand Starting papers to select matching fictional papers by title, author, ID or URL, or save external DOI/PMID/URL/title references for later lookup. The sample shortcut loads the original question and seeds. The graph displays the submitted query as read-only text. Clicking the Scinapse logo returns to a blank search page to begin a new exploration. Submitting creates a new research session; the previous query cannot be edited in place. Inputs and chosen seeds persist in local browser storage. Export includes the research inputs and the original assessment context.
