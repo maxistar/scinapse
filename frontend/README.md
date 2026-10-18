@@ -48,14 +48,19 @@ The UI handles validation, unreachable servers, failed jobs and expired sessions
 
 “Open example graph” explicitly opens the bundled `../graph.json`, without invoking discovery. It remains available when external providers are down. Search never silently falls back to the example.
 
-## Frontend Docker image
+## Unified Docker image
 
 ```sh
-docker build -f frontend/Dockerfile -t scinapse-frontend .
-docker run --rm -p 8080:80 scinapse-frontend
+docker build -f frontend/Dockerfile -t scinapse-unified .
+docker run --rm -p 8000:8000 \
+  -e SCINAPSE_SMOKE=1 \
+  -e SCINAPSE_NO_LLM=1 \
+  scinapse-unified
 ```
 
-The existing image serves the frontend and bundled example at <http://localhost:8080>. Live search requires an `/api` reverse proxy to the Python service; this local integration uses Vite's proxy. The image is not a combined backend deployment. Rebuild after changing the bundled example.
+The image serves the frontend and live `/api` service from one origin at <http://localhost:8000>. Health is available at <http://localhost:8000/api/health>. Inject `NEBIUS_API_KEY`, `S2_API_KEY`, and `SCINAPSE_*` settings at runtime; `.env` is not copied into the image. The container runs one worker because jobs are held in memory and disappear after a restart.
+
+The local development workflow above remains two processes: Vite on port 5173 and `scinapse.api:app` on port 8000. Vite's proxy is only for local development; the production image uses `scinapse.web:app` to serve both surfaces directly.
 
 ## Data and interactions
 

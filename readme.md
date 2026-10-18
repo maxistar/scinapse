@@ -206,21 +206,24 @@ npm test
 npm run build
 ```
 
-## Run the frontend with Docker
+## Run the unified image with Docker
 
-The image packages the static frontend and bundled example graph. It does not include the Python backend or a reverse proxy for live `/api` requests.
+The production image packages the Python backend and compiled React frontend together. One Uvicorn process serves both the frontend and `/api` from the same origin on port 8000.
 
 ```sh
-docker build -f frontend/Dockerfile -t scinapse-frontend .
-docker run --rm -p 8080:80 scinapse-frontend
+docker build -f frontend/Dockerfile -t scinapse-unified .
+docker run --rm -p 8000:8000 \
+  -e SCINAPSE_SMOKE=1 \
+  -e SCINAPSE_NO_LLM=1 \
+  scinapse-unified
 ```
 
-Open <http://localhost:8080>. Rebuild after changing the bundled `graph.json` example. For live search, run the FastAPI service separately and place an `/api` reverse proxy in front of it.
+Open <http://localhost:8000>. The health probe is <http://localhost:8000/api/health>. Inject `NEBIUS_API_KEY`, `S2_API_KEY`, and other `SCINAPSE_*` settings through the hosting platform; do not copy `.env` into the image. The container intentionally runs one worker because research jobs and their results are held in memory. Jobs disappear when the container restarts.
 
 ## Repository structure
 
 ```text
-src/scinapse/             Python pipeline, FastAPI service, CLI, and graph checker
+src/scinapse/             Python pipeline, FastAPI service, production web entrypoint, CLI, and graph checker
 frontend/                 React/Vite explorer, API client, and Dockerfile
 tests/                    Network-free Python API and contract tests
 graph.json                Bundled frontend example graph
