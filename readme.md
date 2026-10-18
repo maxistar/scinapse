@@ -211,7 +211,7 @@ npm run build
 The production image packages the Python backend and compiled React frontend together. One Uvicorn process serves both the frontend and `/api` from the same origin on port 8000.
 
 ```sh
-docker build -f frontend/Dockerfile -t scinapse-unified .
+docker build -f frontend/Dockerfile.unified -t scinapse-unified .
 docker run --rm -p 8000:8000 \
   -e SCINAPSE_SMOKE=1 \
   -e SCINAPSE_NO_LLM=1 \
@@ -220,11 +220,42 @@ docker run --rm -p 8000:8000 \
 
 Open <http://localhost:8000>. The health probe is <http://localhost:8000/api/health>. Inject `NEBIUS_API_KEY`, `S2_API_KEY`, and other `SCINAPSE_*` settings through the hosting platform; do not copy `.env` into the image. The container intentionally runs one worker because research jobs and their results are held in memory. Jobs disappear when the container restarts.
 
+## Build split images for Kubernetes
+
+The split images are intended for a later Kubernetes deployment where the frontend and backend run as separate workloads. The frontend image serves static files on port 80; the backend image serves the API on port 8000. Both images keep `/api` as a same-origin path so an Ingress or gateway can route it to the backend Service.
+
+```sh
+# Backend-only image
+docker build -f Dockerfile -t scinapse-backend .
+docker run --rm -p 8000:8000 \
+  -e SCINAPSE_SMOKE=1 \
+  -e SCINAPSE_NO_LLM=1 \
+  scinapse-backend
+
+# Frontend-only image
+docker build -f frontend/Dockerfile -t scinapse-frontend .
+docker run --rm -p 8080:80 scinapse-frontend
+```
+
+The backend health probe is <http://localhost:8000/api/health>. The frontend health probe is <http://localhost:8080/>. The frontend image intentionally does not proxy `/api` to a hard-coded host; Kubernetes routing supplies that connection later.
+
+For a registry, tag each image with the registry hostname and push it using the registry's normal login flow:
+
+```sh
+docker tag scinapse-backend REGISTRY_HOST/scinapse-backend:TAG
+docker tag scinapse-frontend REGISTRY_HOST/scinapse-frontend:TAG
+docker push REGISTRY_HOST/scinapse-backend:TAG
+docker push REGISTRY_HOST/scinapse-frontend:TAG
+```
+
+Keep `scinapse-unified` available as the rollback image for the initial single-container host.
+
 ## Repository structure
 
 ```text
 src/scinapse/             Python pipeline, FastAPI service, production web entrypoint, CLI, and graph checker
-frontend/                 React/Vite explorer, API client, and Dockerfile
+Dockerfile                Backend-only production image
+frontend/                 React/Vite explorer, API client, split and unified Dockerfiles
 tests/                    Network-free Python API and contract tests
 graph.json                Bundled frontend example graph
 sample_response.json      Graph contract example
