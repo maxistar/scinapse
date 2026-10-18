@@ -28,17 +28,26 @@ def normalize_doi(doi: str) -> str:
     return d.strip()
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]  # src/scinapse/config.py -> repo root
+
+
 def load_dotenv(path: Path | None = None) -> None:
-    """Minimal .env loader: KEY=VALUE lines, no overrides of existing env."""
-    p = path or Path(".env")
-    if not p.exists():
-        return
-    for line in p.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
+    """Minimal .env loader: KEY=VALUE lines, no overrides of existing env.
+
+    With no explicit path, loads ``./.env`` and then the repo-root ``.env``
+    (first file wins per key) — CLI runs from subdirectories (e.g. ``frontend/``)
+    still find their keys.
+    """
+    candidates = [path] if path else [Path(".env"), REPO_ROOT / ".env"]
+    for p in candidates:
+        if not p.exists():
             continue
-        key, _, value = line.partition("=")
-        os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+        for line in p.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            os.environ.setdefault(key.strip(), value.strip().strip("'\""))
 
 
 def nebius_api_key() -> str | None:
