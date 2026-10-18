@@ -85,8 +85,11 @@ Invariants that were bugs once — keep them true:
 
 ## Repo quirks
 
-- `notebook.ipynb` (root) is a fill-in-the-blanks *tutorial* — not the pipeline.
-  The full prototype the package was ported from lives in the dev worktree:
-  `.claude/worktrees/dev/scinapse_prototype.ipynb` (notebook kernel: `scinapse-310`).
-- `*:Zone.Identifier` files are Windows download-tracking stubs; ignore them.
+- No notebooks in the tree by design. The prototype the package was ported from
+  — including the pyvis HTML renderer and `inspect()`/`expand()`/`more()` explore
+  helpers, none of which are ported to the package — is archived on the
+  `jupyter_ui_mock` branch (kernel: `scinapse-310`).
+- `*:Zone.Identifier` files are Windows download-tracking stubs; gitignored
+  (`*:Zone.Identifier`) — they reappear when files are copied from the Windows side;
+  safe to delete on sight.
 - `graph_*.json` outputs are gitignored on purpose.
