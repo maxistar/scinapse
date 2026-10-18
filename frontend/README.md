@@ -31,6 +31,17 @@ Run `uv run pytest`, `uv run scinapse check graph.json`, `npm test` and `npm run
 
 Enter a question (3–2000 characters) and one to ten starting DOIs. DOI URLs are accepted and duplicates are removed. Papers from the example collection can be selected by title; their DOI is submitted. External title-only lookup and PMID resolution are not yet supported.
 
+Use **Research history** on the search page or in the graph’s More options menu to list tasks. The dialog refreshes automatically, filters by status, opens completed graphs, downloads full graph JSON, and resumes progress for running tasks. Empty, offline and expired-result states are handled explicitly.
+
+Task inspection APIs:
+
+- `GET /api/explorations`: retained tasks, newest first, with `tasks` and `total`.
+- `GET /api/explorations?status=completed`: filter by queued, running, completed or failed.
+- `GET /api/explorations/{id}`: status, question, stage, timestamps and links.
+- `GET /api/explorations/{id}/graph`: full graph JSON for completed tasks; HTTP 409 otherwise, 404 for missing tasks.
+
+Task summaries include `status_url` and a `graph_url` only when completed. Lists do not embed graph data. The retention and restart limitations below apply.
+
 The frontend submits `POST /api/explorations` with `{"question":"...","seeds":["10.1126/science.aad0501"]}`. The server returns HTTP 202 with a job ID. The frontend polls `GET /api/explorations/{id}` for queued/running/completed/failed status and the real pipeline stage, then loads `GET /api/explorations/{id}/graph`. The returned graph replaces the example; its question, seeds, metadata, evidence and warnings are authoritative. Exports use the active graph, and saved papers are isolated by its exploration ID.
 
 The UI handles validation, unreachable servers, failed jobs and expired sessions, with retry. Refresh resumes polling the current tab's job. Going back to search stops waiting in the browser; the server's current job continues. One job runs at a time to respect provider pacing; additional submissions return 409. Up to 20 completed jobs are kept in memory. Restarting the backend loses them; expired sessions require a new search. Use one API process/worker for this local implementation; a persistent shared queue is needed before scaling.

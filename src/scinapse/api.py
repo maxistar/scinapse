@@ -10,8 +10,9 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
+from typing import Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field, field_validator
 
 from .checker import check
@@ -60,7 +61,9 @@ def create_app(runner=None) -> FastAPI:
     app = FastAPI(title="Scinapse API", lifespan=lifespan)
 
     def public(job):
-        return {key: value for key, value in job.items() if key != "graph"}
+        return {**{key: value for key, value in job.items() if key != "graph"},
+                "status_url": f"/api/explorations/{job['id']}",
+                "graph_url": f"/api/explorations/{job['id']}/graph" if job["status"] == "completed" else None}
 
     def build(job_id: str, request: ExplorationInput, smoke: bool, no_llm: bool):
         def progress(stage: int, message: str):
@@ -114,6 +117,14 @@ def create_app(runner=None) -> FastAPI:
             result = public(jobs[job_id])
         executor.submit(build, job_id, request, smoke, no_llm)
         return result
+
+    @app.get("/api/explorations")
+    def list_tasks(status_filter: Literal["queued", "running", "completed", "failed"] | None = Query(None, alias="status")):
+        """List retained tasks, newest first, without embedding large graph documents."""
+        with lock:
+            tasks = [public(job) for job in reversed(list(jobs.values()))
+                     if status_filter is None or job["status"] == status_filter]
+            return {"tasks": tasks, "total": len(tasks)}
 
     @app.get("/api/explorations/{job_id}")
     def status(job_id: str):

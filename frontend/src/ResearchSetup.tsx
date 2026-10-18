@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { ArrowRight, Check, ChevronDown, FileText, Network, Plus, Search, X } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, FileText, History, Network, Plus, Search, X } from 'lucide-react';
 import type { Paper } from './graph';
 import { buildRequest, normalizeDoi, type ResearchJob } from './api';
 import { findPapers, normalizeResearch, type ResearchSession } from './research';
@@ -9,11 +9,12 @@ interface Props {
   initial?: ResearchSession;
   onSubmit: (value: ResearchSession) => Promise<void>;
   onExample: () => void;
+  onHistory: () => void;
   onBack: () => void;
   busy: boolean; job: ResearchJob | null; error: string;
 }
 
-export default function ResearchSetup({ papers, initial, onSubmit, onExample, onBack, busy, job, error }: Props) {
+export default function ResearchSetup({ papers, initial, onSubmit, onExample, onHistory, onBack, busy, job, error }: Props) {
   const [query, setQuery] = useState(initial?.query ?? '');
   const [seedIds, setSeedIds] = useState<string[]>(initial?.seedIds ?? []);
   const [references, setReferences] = useState<string[]>(initial?.references ?? []);
@@ -67,6 +68,7 @@ export default function ResearchSetup({ papers, initial, onSubmit, onExample, on
         {busy && <section className="research-progress" role="status" aria-live="polite"><span className="research-spinner" aria-hidden="true" /><div><strong>{job?.message ?? 'Connecting to the research server'}</strong><p>{job ? `Stage ${job.stage} of ${job.total_stages} · ${job.profile === 'smoke' ? 'Quick exploration' : 'Full exploration'}` : 'Preparing your research request'}</p><small>External data providers can take several minutes.{job && !job.assessments_enabled ? ' Relevance assessment is unavailable; scores will remain unassessed.' : ''}</small></div></section>}
         {busy && <button type="button" className="text-button research-back" onClick={onBack}>Back to search · research continues on the server</button>}
       </form>
+      <button type="button" className="history-link" onClick={onHistory}><History size={14} />Research history</button>
     </section>
     <p className="search-demo-note">Research from Semantic Scholar and OpenAlex · Assessments when available</p>
   </main>;

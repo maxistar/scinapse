@@ -45,6 +45,10 @@ def test_background_job_progress_graph_and_busy_limit(monkeypatch):
             status = client.get(f"/api/explorations/{job_id}").json()
             assert status["status"] == "running" and status["stage"] == 4
             assert "graph" not in status
+            listed = client.get("/api/explorations?status=running").json()
+            assert listed["total"] == 1
+            assert listed["tasks"][0]["id"] == job_id
+            assert listed["tasks"][0]["graph_url"] is None
             assert client.get(f"/api/explorations/{job_id}/graph").status_code == 409
             assert client.post("/api/explorations", json=REQUEST).status_code == 409
         finally:
@@ -83,3 +87,29 @@ def test_invalid_graph_is_never_published():
         job_id = client.post("/api/explorations", json=REQUEST).json()["id"]
         assert finished(client, job_id)["status"] == "failed"
         assert client.get(f"/api/explorations/{job_id}/graph").status_code == 409
+
+
+def test_task_listing_filters_order_and_completed_graph_links():
+    def generate(cfg, **kwargs):
+        if cfg.question.startswith("Fail"):
+            raise RuntimeError("test failure")
+        return _minimal_document()
+
+    with TestClient(create_app(generate)) as client:
+        assert client.get("/api/explorations").json() == {"tasks": [], "total": 0}
+        completed_id = client.post("/api/explorations", json=REQUEST).json()["id"]
+        assert finished(client, completed_id)["status"] == "completed"
+        failed_id = client.post("/api/explorations", json={**REQUEST, "question": "Fail this research"}).json()["id"]
+        assert finished(client, failed_id)["status"] == "failed"
+        listed = client.get("/api/explorations").json()
+        assert listed["total"] == 2
+        assert [task["id"] for task in listed["tasks"]] == [failed_id, completed_id]
+        assert all("graph" not in task for task in listed["tasks"])
+        assert listed["tasks"][0]["graph_url"] is None
+        completed = client.get("/api/explorations?status=completed").json()
+        assert completed["total"] == 1
+        task = completed["tasks"][0]
+        assert task["status_url"] == f"/api/explorations/{completed_id}"
+        assert client.get(task["status_url"]).json()["status"] == "completed"
+        assert client.get(task["graph_url"]).json()["nodes"]
+        assert client.get("/api/explorations?status=invalid").status_code == 422

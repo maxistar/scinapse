@@ -4,7 +4,7 @@ import {
   ArrowUpRight, Bookmark, Check, ChevronDown, ChevronRight,
   CircleHelp, Compass, Download, Expand, ExternalLink, FileText,
   GitBranch, Link2, Minus, Network, Plus, Search, ShieldCheck,
-  SlidersHorizontal, Sparkles, X, MoreHorizontal, RotateCcw, AlertTriangle,
+  SlidersHorizontal, Sparkles, X, MoreHorizontal, RotateCcw, AlertTriangle, History,
 } from 'lucide-react';
 import FocusGraph from './FocusGraph';
 import type { ResearchSession } from './research';
@@ -24,11 +24,11 @@ function readSaved(data: GraphData): string[] {
 }
 
 const GraphContext = createContext<GraphData | null>(null);
-interface ExplorerProps { data: GraphData; research: ResearchSession | null; onNewSearch: () => void }
+interface ExplorerProps { data: GraphData; research: ResearchSession | null; onNewSearch: () => void; onHistory: () => void }
 export default function GraphExplorer(props: ExplorerProps) {
   return <GraphContext.Provider value={props.data}><Explorer {...props} /></GraphContext.Provider>;
 }
-function Explorer({ data, research, onNewSearch }: ExplorerProps) {
+function Explorer({ data, research, onNewSearch, onHistory }: ExplorerProps) {
   const allTypes = useMemo(() => [...new Set(data.edges.map(edge => edge.type))], [data.edges]);
   const savedStorageKey = `scinapse-saved:${data.exploration_id}`;
   const seedIds = data.nodes.filter(p => p.is_seed).map(p => p.id);
@@ -126,7 +126,7 @@ function Explorer({ data, research, onNewSearch }: ExplorerProps) {
             <a className="compact-brand" href="/" onClick={e => { e.preventDefault(); reset(); onNewSearch(); }} aria-label="Start a new research search"><Network size={20} /><span>scinapse<span>.</span></span></a>
             <div className="research-context" title={data.research_question}><span>{data.research_question}</span><small>{seedIds.length} seed{seedIds.length === 1 ? '' : 's'}</small></div>
             <div className="toolbar-actions"><label className="search"><Search size={16} /><input aria-label="Search papers" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search papers" />{search && <button onClick={() => setSearch('')} aria-label="Clear search"><X size={13} /></button>}</label><button className={`filter-button ${showFilters ? 'selected' : ''}`} onClick={() => setShowFilters(!showFilters)} aria-label="Toggle graph filters" aria-expanded={showFilters}><SlidersHorizontal size={17} />{(types.length !== allTypes.length || minQuality > 0 || section !== 'explore') && <i />}</button>
-            <div className="more-menu"><button className="icon-button" aria-label="More options" aria-expanded={showMenu} aria-haspopup="menu" onClick={() => setShowMenu(!showMenu)}><MoreHorizontal size={21} /></button>{showMenu && <div className="options-menu" role="menu"><button role="menuitem" onClick={() => { exportGraph(); setShowMenu(false); }}><Download size={15} /> Export graph</button><button role="menuitem" onClick={reset}><RotateCcw size={15} /> Reset exploration</button><button role="menuitem" onClick={() => { setHelp(true); setShowMenu(false); }}><CircleHelp size={15} /> How to explore</button><p>{data.is_demo ? 'Demo graph' : 'Generated graph'} · {data.nodes.length} papers</p></div>}</div></div>
+            <div className="more-menu"><button className="icon-button" aria-label="More options" aria-expanded={showMenu} aria-haspopup="menu" onClick={() => setShowMenu(!showMenu)}><MoreHorizontal size={21} /></button>{showMenu && <div className="options-menu" role="menu"><button role="menuitem" onClick={() => { onHistory(); setShowMenu(false); }}><History size={15} />Research history</button><button role="menuitem" onClick={() => { exportGraph(); setShowMenu(false); }}><Download size={15} /> Export graph</button><button role="menuitem" onClick={reset}><RotateCcw size={15} /> Reset exploration</button><button role="menuitem" onClick={() => { setHelp(true); setShowMenu(false); }}><CircleHelp size={15} /> How to explore</button><p>{data.is_demo ? 'Demo graph' : 'Generated graph'} · {data.nodes.length} papers</p></div>}</div></div>
           </header>
           {showFilters && <div className="filters"><div className="collection-filter" role="group" aria-label="Paper collection">{[['explore', 'All papers'], ['collection', 'Starting papers'], ['saved', 'Saved papers']].map(([value,label]) => <button key={value} className={section === value ? 'collection-active' : ''} aria-pressed={section === value} onClick={() => setSection(value)}>{label}{value === 'saved' && <span>{saved.length}</span>}</button>)}</div><div className="quality-filter"><label htmlFor="quality-filter">Minimum paper quality <strong>{!hasQualityScores ? 'Unassessed' : minQuality === 0 ? 'Any' : `${minQuality} / 100`}</strong></label><input id="quality-filter" disabled={!hasQualityScores} aria-describedby="quality-filter-help" type="range" min="0" max="100" step="5" value={minQuality} aria-valuetext={!hasQualityScores ? 'Overall quality unassessed' : minQuality === 0 ? 'Any quality, including unassessed' : `${minQuality} out of 100 minimum`} onChange={e => setMinQuality(Number(e.target.value))} /><p id="quality-filter-help">{!hasQualityScores ? 'No overall quality scores were returned. Dimension assessments are available in each paper’s Quality tab.' : minQuality === 0 ? 'Includes papers with unassessed quality.' : 'Seed papers always stay visible. Other unassessed papers are hidden.'}</p></div><fieldset><legend>Relationship types</legend>{allTypes.map(type => <label key={type} title={relationshipDescriptions[type]}><input type="checkbox" checked={types.includes(type)} onChange={() => setTypes(types.includes(type) ? types.filter(t => t !== type) : [...types, type])} />{relationshipLabel(type)}</label>)}</fieldset><button className="text-button" onClick={reset}>Reset</button></div>}
           <div className="canvas-wrap">

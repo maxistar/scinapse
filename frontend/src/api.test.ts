@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildRequest, normalizeDoi, getResearch, startResearch, getGraph } from './api.ts';
+import { buildRequest, normalizeDoi, getResearch, startResearch, getGraph, listResearch } from './api.ts';
 import type { Paper } from './graph';
 
 test('discovery requires a question and seed DOIs, normalizes and deduplicates identifiers', () => {
@@ -18,6 +18,7 @@ test('API client posts research, retrieves a new graph, and reports expired jobs
   const calls: {url: string; body: unknown}[] = [];
   globalThis.fetch = async (url, options) => {
     calls.push({ url: String(url), body: options?.body ? JSON.parse(String(options.body)) : null });
+    if (String(url) === '/api/explorations' && !options?.body) return Response.json({ tasks: [{ id: 'history-job', question: 'Previous research', status: 'completed', graph_url: '/api/explorations/history-job/graph' }], total: 1 });
     if (String(url).includes('expired')) return new Response(JSON.stringify({ detail: 'Session expired' }), { status: 404 });
     if (String(url).endsWith('/graph')) return Response.json({ exploration_id: 'new', research_question: 'New question', nodes: [{ id: 'new-paper' }], edges: [], evidence: [], warnings: [] });
     return Response.json({ id: 'new-job', status: 'queued' });
@@ -29,5 +30,9 @@ test('API client posts research, retrieves a new graph, and reports expired jobs
     assert.deepEqual(calls[0].body, { question: 'New question', seeds: ['10.1234/test'] });
     assert.equal((await getGraph('new-job', signal)).nodes[0].id, 'new-paper');
     await assert.rejects(getResearch('expired', signal), /Session expired/);
+    const history = await listResearch(signal);
+    assert.equal(history.total, 1);
+    assert.equal(history.tasks[0].id, 'history-job');
+    assert.equal(history.tasks[0].graph_url, '/api/explorations/history-job/graph');
   } finally { globalThis.fetch = original; }
 });

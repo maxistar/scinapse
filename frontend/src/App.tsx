@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import example from '../../graph.json';
 import GraphExplorer from './GraphExplorer';
 import ResearchSetup from './ResearchSetup';
+import ResearchHistory from './ResearchHistory';
 import { buildRequest, getGraph, getResearch, startResearch, type ResearchJob } from './api';
 import type { GraphData } from './graph';
 import type { ResearchSession } from './research';
@@ -24,6 +25,7 @@ export default function App() {
   const [job, setJob] = useState<ResearchJob | null>(null);
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const busy = starting || (!!active?.jobId && !graph && !error);
   useEffect(() => () => controller.current?.abort(), []);
@@ -68,6 +70,13 @@ export default function App() {
   function newSearch() {
     controller.current?.abort(); remember(null); setActive(null); setGraph(null); setError(''); setJob(null); setStarting(false);
   }
-  if (graph) return <GraphExplorer key={`${active?.jobId ?? 'example'}:${graph.exploration_id}`} data={graph} research={active?.input ?? null} onNewSearch={newSearch} />;
-  return <ResearchSetup papers={exampleGraph.nodes} initial={active?.input} onSubmit={submit} onExample={openExample} busy={busy} job={job} error={error} onBack={newSearch} />;
+  function openTask(task: ResearchJob) {
+    controller.current?.abort(); setStarting(false); setError(''); setJob(task); setGraph(null);
+    const session = { jobId: task.id, input: { query: task.question, seedIds: [], references: [] } };
+    remember(session); setActive(session); setHistoryOpen(false);
+  }
+  return <>
+    <div inert={historyOpen}>{graph ? <GraphExplorer key={`${active?.jobId ?? 'example'}:${graph.exploration_id}`} data={graph} research={active?.input ?? null} onNewSearch={newSearch} onHistory={() => setHistoryOpen(true)} /> : <ResearchSetup papers={exampleGraph.nodes} initial={active?.input} onSubmit={submit} onExample={openExample} busy={busy} job={job} error={error} onBack={newSearch} onHistory={() => setHistoryOpen(true)} />}</div>
+    {historyOpen && <ResearchHistory onClose={() => setHistoryOpen(false)} onOpen={openTask} onStart={() => { newSearch(); setHistoryOpen(false); }} />}
+  </>;
 }

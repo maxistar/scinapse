@@ -6,6 +6,8 @@ export interface ResearchJob {
   id: string; status: 'queued' | 'running' | 'completed' | 'failed';
   stage: number; total_stages: number; message: string;
   profile: string; assessments_enabled: boolean;
+  question: string; created_at: number; finished_at: number | null;
+  status_url: string; graph_url: string | null;
 }
 export function normalizeDoi(value: string): string | null {
   const doi = value.trim().replace(/^(?:https?:\/\/)?(?:dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '');
@@ -43,6 +45,7 @@ async function request<T>(path: string, signal: AbortSignal, body?: unknown): Pr
   return response.json();
 }
 export const startResearch = (body: BuildRequest, signal: AbortSignal) => request<ResearchJob>('/explorations', signal, body);
+export const listResearch = (signal: AbortSignal) => request<{ tasks: ResearchJob[]; total: number }>('/explorations', signal);
 export const getResearch = (id: string, signal: AbortSignal) => request<ResearchJob>(`/explorations/${encodeURIComponent(id)}`, signal);
 export async function getGraph(id: string, signal: AbortSignal): Promise<GraphData> {
   const data = await request<GraphData>(`/explorations/${encodeURIComponent(id)}/graph`, signal);
