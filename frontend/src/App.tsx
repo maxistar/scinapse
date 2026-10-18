@@ -1,3 +1,4 @@
+import useEdgeReasoning from './useEdgeReasoning';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import {
   ArrowUpRight, Bookmark, Check, ChevronDown, ChevronRight,
@@ -34,6 +35,7 @@ export default function App() {
   const data = useMemo(() => ({ ...sampleData, nodes: sampleData.nodes.map(p => ({ ...p, is_seed: seedIds.includes(p.id) })) }), [research]);
   const paperById = (id: string) => data.nodes.find(p => p.id === id)!;
 
+  const edgeReasoning = useEdgeReasoning();
   const [selection, setSelection] = useState<string | null>(null);
   const [focusTarget, setFocusTarget] = useState<FocusTarget | null>(null);
   const [selectedPair, setSelectedPair] = useState<string | null>(null);
@@ -68,6 +70,7 @@ export default function App() {
     (section !== 'collection' || p.is_seed) &&
     (!search || `${p.title} ${p.topics.join(' ')} ${p.methods.join(' ')} ${p.authors.map(a => a.name).join(' ')}`.toLowerCase().includes(search.toLowerCase()))
   ), [data.nodes, revealed, minQuality, section, saved, search]);
+  useEffect(() => { edgeReasoning.dismiss(); }, [visible, types, view, setupOpen]);
   const visibleIds = new Set(visible.map(p => p.id));
   const groups = groupEdges(data.edges, types).filter(g => visibleIds.has(g.selected.source) && visibleIds.has(g.selected.target));
   const activePaperId = selection ?? (focusTarget?.type === 'paper' ? focusTarget.id : null);
@@ -83,10 +86,10 @@ export default function App() {
   const viewBox = `${viewLeft} ${(layout.height - height) / 2 - view.y} ${width} ${height}`;
 
   function closeInspector() { setSelection(null); }
-  function closeFocus() { setFocusTarget(null); setSelection(null); setSelectedPair(null); }
+  function closeFocus() { edgeReasoning.dismiss(); setFocusTarget(null); setSelection(null); setSelectedPair(null); }
   function selectEdge(key: string) { setSelection(null); setSelectedPair(key); }
-  function openEdgeFocus(key: string) { setFocusTarget({ type: 'edge', key }); setSelection(null); setSelectedPair(key); }
-  function openPaperFocus(id: string) { setFocusTarget({ type: 'paper', id }); setSelection(null); setSelectedPair(null); }
+  function openEdgeFocus(key: string) { edgeReasoning.dismiss(); setFocusTarget({ type: 'edge', key }); setSelection(null); setSelectedPair(key); }
+  function openPaperFocus(id: string) { edgeReasoning.dismiss(); setFocusTarget({ type: 'paper', id }); setSelection(null); setSelectedPair(null); }
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { closeFocus(); setHelp(false); setShowMenu(false); setShowFilters(false); }
@@ -104,7 +107,7 @@ export default function App() {
     try { localStorage.setItem(savedStorageKey, JSON.stringify(next)); } catch { setStorageWarning(true); }
   }
   function reset() {
-    setSearch(''); setMinQuality(0); setTypes(allTypes); setRevealed(data.nodes.map(p => p.id));
+    edgeReasoning.dismiss(); setSearch(''); setMinQuality(0); setTypes(allTypes); setRevealed(data.nodes.map(p => p.id));
     setFocusTarget(null); setView({ zoom: 1, x: 0, y: 0 }); setSection('explore'); setSelectedPair(null); setSelection(null); setTab('Overview'); setShowFilters(false); setShowMenu(false);
   }
   function exportGraph() {
@@ -122,6 +125,7 @@ export default function App() {
   if (setupOpen) return <ResearchSetup papers={sampleData.nodes} sampleQuery={sampleData.research_question} onSubmit={applyResearch} />;
 
   return <div className="app-shell">
+    {edgeReasoning.tooltip}
     <main className="main">
       <div className={`explorer-layout ${inspectorOpen ? 'has-inspector' : ''} ${focusTarget ? 'is-focused' : ''}`}>
         <section className="graph-panel" aria-label="Publication timeline explorer" inert={focusTarget !== null}>
@@ -148,8 +152,10 @@ export default function App() {
                 const curve = geometry.path;
                 const active = selectedPair ? selectedPair === group.key : edge.source === activePaperId || edge.target === activePaperId;
                 const { x: midX, y: midY } = geometry.label;
-                return <g key={group.key} data-interactive="true" className={`graph-edge ${active ? 'edge-active' : activePaperId ? 'edge-muted' : ''} edge-${edge.type}`} role="button" tabIndex={0} aria-pressed={selectedPair === group.key} aria-label={`${relationshipLabels[edge.type]} between ${paperById(edge.source).title} and ${paperById(edge.target).title}; ${group.all.length} relationships`} onClick={() => { selectEdge(group.key); }} onDoubleClick={() => openEdgeFocus(group.key)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectEdge(group.key); } }}>
-                  <title>{`${relationshipLabels[edge.type]} · Display score: ${edge.display_score.value?.toFixed(2) ?? 'unassessed'} · ${edge.reasoning.summary}`}</title><path className="edge-hit" d={curve} /><path className="edge-line" d={curve} style={{ strokeWidth: edgeWidth(edge) }} />
+                return <g key={group.key} data-interactive="true" className={`graph-edge ${active ? 'edge-active' : activePaperId ? 'edge-muted' : ''} edge-${edge.type}`} role="button" tabIndex={0} aria-describedby={edgeReasoning.edgeId === edge.id ? edgeReasoning.id : undefined}
+                  onPointerEnter={event => { if (event.pointerType !== 'touch') edgeReasoning.show(edge, event.clientX, event.clientY); }} onPointerLeave={edgeReasoning.hide}
+                  onFocus={event => { const bounds = event.currentTarget.getBoundingClientRect(); edgeReasoning.show(edge, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2); }} onBlur={edgeReasoning.hide} aria-pressed={selectedPair === group.key} aria-label={`${relationshipLabels[edge.type]} between ${paperById(edge.source).title} and ${paperById(edge.target).title}; ${group.all.length} relationships`} onClick={() => { selectEdge(group.key); }} onDoubleClick={() => openEdgeFocus(group.key)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectEdge(group.key); } }}>
+                  <path className="edge-hit" d={curve} /><path className="edge-line" d={curve} style={{ strokeWidth: edgeWidth(edge) }} />
                   {group.all.length > 1 && <g className="edge-count" transform={`translate(${midX},${midY})`}><rect x="-16" y="-12" width="32" height="24" rx="12" /><text textAnchor="middle" y="4">+{group.all.length - 1}</text></g>}
                 </g>;
               })}

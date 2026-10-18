@@ -1,3 +1,4 @@
+import useEdgeReasoning from './useEdgeReasoning';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Bookmark, Expand, Plus, Minus, X } from 'lucide-react';
 import {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function FocusGraph({ papers, edges, target, types, saved, detailsOpen, selectedPaperId, onPaper, onEdge, onDetails, onClose }: Props) {
+  const edgeReasoning = useEdgeReasoning();
   const subgraph = useMemo(() => focusSubgraph(papers, edges, target, types), [papers, edges, target, types]);
   const viewport = useRef<HTMLDivElement>(null);
   const drag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
@@ -32,6 +34,7 @@ export default function FocusGraph({ papers, edges, target, types, saved, detail
     return () => observer.disconnect();
   }, []);
   useEffect(() => { closeButton.current?.focus({ preventScroll: true }); setSelectedEdge(null); setZoom(1); setPan({ x: 0, y: 0 }); }, [targetKey]);
+  useEffect(() => { edgeReasoning.dismiss(); }, [subgraph, zoom, pan]);
   const scale = fitGraphScale(layout.width, layout.height, size.width, size.height) * zoom;
   const worldX = (size.width - layout.width * scale) / 2 + pan.x;
   const worldY = (size.height - layout.height * scale) / 2 + pan.y;
@@ -39,6 +42,7 @@ export default function FocusGraph({ papers, edges, target, types, saved, detail
   const activePaperId = selectedPaperId ?? (target.type === 'paper' ? target.id : null);
   const relatedIds = new Set(subgraph.groups.flatMap(group => group.selected.source === activePaperId ? [group.selected.target] : group.selected.target === activePaperId ? [group.selected.source] : []));
   return <>
+    {edgeReasoning.tooltip}
     <div className="focus-backdrop" onClick={onClose} aria-hidden="true" />
     <section className={`focus-layer ${detailsOpen ? 'focus-has-details' : ''}`} role="dialog" aria-modal={!detailsOpen} aria-label="Focused research graph" onKeyDown={event => {
       if (event.key !== 'Tab' || detailsOpen) return;
@@ -62,8 +66,10 @@ export default function FocusGraph({ papers, edges, target, types, saved, detail
               const geometry = connectionGeometry(a, b, FOCUS_NODE_WIDTH, FOCUS_NODE_HEIGHT, index);
               const path = geometry.path;
               const primary = target.type === 'edge' || edge.source === activePaperId || edge.target === activePaperId;
-              return <g key={group.key} className={`graph-edge focus-edge edge-${edge.type} ${primary ? 'focus-primary-edge' : ''} ${selectedEdge === group.key || target.type === 'edge' ? 'edge-active' : ''}`} role="button" tabIndex={0} aria-label={`Focus connection between ${papers.find(p => p.id === edge.source)?.title} and ${papers.find(p => p.id === edge.target)?.title}`} onClick={() => setSelectedEdge(group.key)} onDoubleClick={() => onEdge(group.key)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedEdge(group.key); } }}>
-                <title>{edge.reasoning.summary}</title><path className="edge-hit" d={path} /><path className="edge-line" d={path} style={{ strokeWidth: edgeWidth(edge) }} />
+              return <g key={group.key} className={`graph-edge focus-edge edge-${edge.type} ${primary ? 'focus-primary-edge' : ''} ${selectedEdge === group.key || target.type === 'edge' ? 'edge-active' : ''}`} role="button" tabIndex={0} aria-describedby={edgeReasoning.edgeId === edge.id ? edgeReasoning.id : undefined}
+                  onPointerEnter={event => { if (event.pointerType !== 'touch') edgeReasoning.show(edge, event.clientX, event.clientY); }} onPointerLeave={edgeReasoning.hide}
+                  onFocus={event => { const bounds = event.currentTarget.getBoundingClientRect(); edgeReasoning.show(edge, bounds.left + bounds.width / 2, bounds.top + bounds.height / 2); }} onBlur={edgeReasoning.hide} aria-label={`Focus connection between ${papers.find(p => p.id === edge.source)?.title} and ${papers.find(p => p.id === edge.target)?.title}`} onClick={() => setSelectedEdge(group.key)} onDoubleClick={() => onEdge(group.key)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedEdge(group.key); } }}>
+                <path className="edge-hit" d={path} /><path className="edge-line" d={path} style={{ strokeWidth: edgeWidth(edge) }} />
                 {group.all.length > 1 && <g className="edge-count" transform={`translate(${geometry.label.x},${geometry.label.y})`}><rect x="-16" y="-12" width="32" height="24" rx="12" /><text textAnchor="middle" y="4">+{group.all.length - 1}</text></g>}
               </g>;
             })}
