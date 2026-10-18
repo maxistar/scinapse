@@ -1,1 +1,1 @@
-# Scynapse project
+# Scinapse project
