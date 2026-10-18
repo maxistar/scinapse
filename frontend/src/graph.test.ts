@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { groupEdges, layoutPapers, connectionGeometry, edgeWidth, qualityScore, relevanceScore, scorePalette, focusSubgraph, layoutFocus, fitGraphScale, type Edge, type Paper } from './graph.ts';
+import { groupEdges, layoutPapers, connectionGeometry, edgeWidth, passesRelevance, qualityScore, relevanceScore, scorePalette, focusSubgraph, layoutFocus, fitGraphScale, type Edge, type Paper } from './graph.ts';
 
 const edge = (id: string, source: string, target: string, type: string, value: number | null) => ({ id, source, target, type, directed: type === 'cites', display_score: { value } }) as Edge;
 test('selects per unordered pair, preserves direction, and filters before selection', () => {
@@ -104,4 +104,18 @@ test('focus graph fits large and small layouts inside its viewport', () => {
     assert.ok(height*scale<=vh-32+.001);
     assert.ok(scale<=1);
   }
+});
+
+
+test('relevance thresholds include boundary scores, exclude unknown candidates, and retain seeds', () => {
+  const paper = (score: number | null, is_seed = false) => ({ is_seed, relevance: { score }, research_assessment: { overall_score: null } }) as Paper;
+  assert.ok(passesRelevance(paper(null), 0));
+  assert.ok(passesRelevance(paper(0), 0));
+  assert.ok(passesRelevance(paper(.8), 80));
+  assert.ok(!passesRelevance(paper(.79), 80));
+  assert.ok(!passesRelevance(paper(null), 80));
+  assert.ok(!passesRelevance(paper(2), 80));
+  assert.ok(passesRelevance(paper(null, true), 100));
+  assert.ok(passesRelevance(paper(.1, true), 100));
+  assert.ok(passesRelevance(paper(1), 100));
 });

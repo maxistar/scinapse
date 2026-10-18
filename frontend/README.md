@@ -1,6 +1,6 @@
 # Scinapse research explorer
 
-A React + TypeScript frontend for the repository's backend-generated `graph.json`: 35 papers and 56 relationships (51 visible paper pairs). The quality filter uses each paper’s overall research-assessment score.
+A React + TypeScript frontend for the repository's backend-generated `graph.json`: 35 papers and 56 relationships (51 visible paper pairs). The relevance filter uses each paper’s `relevance.score`.
 
 ## Run both services locally
 
@@ -64,7 +64,7 @@ The application imports `../graph.json` directly; there is no copied dataset. Re
 - Opening the artifact shows a full-screen timeline. Single-click selects a paper and opens its information, or highlights an edge. Focus mode is opt-in: use Focus selection, the expand icon in the paper inspector, or double-click a paper/edge to bring its neighbourhood or endpoints forward. The overview remains mounted, dimmed and inert, with its viewport unchanged. Escape, the floating close icon or the backdrop dismiss focus.
 - Foreground cards use fixed readable dimensions, retain year order, relevance colors, blue seeds and display-score line widths, and automatically fit within the window without scrollbars. Compact cards omit the score/action strip; click a card for information or double-click to explore its neighbourhood. Larger neighbourhoods can be zoomed and panned with the icon controls. Empty year gaps are condensed only in focus mode. Foreground papers are highlighted through their border, without status labels. Single-click a foreground card to inspect it; double-click it to explore its neighbourhood. The focus window has no header or footer. Details stay optional, including in edge focus.
 - Selecting a paper highlights its direct neighbours in the currently enabled relationship types and fades unrelated papers. This applies to both overview and focus mode. Edges connect at the centers of card sides; longer curves route around intermediate rows.
-- Minimum paper quality filters by `research_assessment.overall_score` on a 0–100 slider. Any includes unassessed papers; a positive minimum excludes unassessed candidate papers. The slider is disabled when no overall scores are available; qualitative dimensions remain accessible in the Quality tab. Seed papers bypass the quality threshold and remain visible regardless of their score; collection and search filters still apply.
+- Minimum relevance filters by `relevance.score` on a 0–100 slider. Any includes unassessed papers; a positive minimum excludes unassessed candidate papers. Seed papers bypass the relevance threshold regardless of their score; collection and text-search filters still apply. If all relevance scores are missing, the slider explains that assessments are needed. Research quality remains separate in the Quality tab.
 - Publication year determines vertical position, with proportional spacing and newest work at the top. Filtering retains each remaining paper's original position.
 - Paper cards use a compact layout on an ivory canvas. Starting papers have a distinct blue fill and a Seed label. Select a paper to inspect relevance, evidence, quality dimensions, and publication status.
 - Hovering over a connection shows its reasoning in a readable tooltip, in both overview and focus mode. Keyboard focus also reveals it; Escape dismisses it.

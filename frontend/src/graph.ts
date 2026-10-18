@@ -48,8 +48,8 @@ export function evidenceDescription(evidence: Evidence, papers: Paper[]): string
   if (evidence.type === 'reference_list') return evidence.referenced_paper_ids?.length ? `References: ${evidence.referenced_paper_ids.map(id => papers.find(p => p.id === id)?.title ?? id).join('; ')}` : 'No references included in this evidence record.';
   return 'Evidence details are available at the source.';
 }
-export function passesQuality(paper: Paper, minimum: number): boolean {
-  const score = qualityScore(paper);
+export function passesRelevance(paper: Paper, minimum: number): boolean {
+  const score = relevanceScore(paper);
   return paper.is_seed || minimum === 0 || (score !== null && score >= minimum / 100);
 }
 export const NODE_WIDTH = 224;

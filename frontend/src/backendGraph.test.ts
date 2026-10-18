@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { evidenceDescription, groupEdges, focusSubgraph, layoutFocus, layoutPapers, passesQuality, qualityScore, relationshipLabel, type GraphData } from './graph.ts';
+import { evidenceDescription, groupEdges, focusSubgraph, layoutFocus, layoutPapers, passesRelevance, qualityScore, relationshipLabel, type GraphData } from './graph.ts';
 import { researchStorageKey } from './research.ts';
 
 const data = JSON.parse(readFileSync(new URL('../../graph.json', import.meta.url), 'utf8')) as GraphData;
@@ -24,10 +24,10 @@ test('backend paper focus includes neighbours from the new types and produces va
     for (const point of layout.positions.values()) assert.ok(Number.isFinite(point.x) && Number.isFinite(point.y));
   }
 });
-test('missing backend quality stays unknown while seeds bypass quality thresholds', () => {
+test('missing backend quality stays unknown without disabling relevance filtering', () => {
   assert.ok(data.nodes.every(paper => qualityScore(paper) === null));
-  assert.equal(data.nodes.filter(paper => passesQuality(paper, 0)).length, 35);
-  assert.deepEqual(data.nodes.filter(paper => passesQuality(paper, 80)).map(paper => paper.id), data.nodes.filter(paper => paper.is_seed).map(paper => paper.id));
+  assert.equal(data.nodes.filter(paper => passesRelevance(paper, 0)).length, 35);
+  assert.deepEqual(data.nodes.filter(paper => passesRelevance(paper, 80)).map(paper => paper.id), data.nodes.filter(paper => paper.is_seed || (paper.relevance.score !== null && paper.relevance.score >= .8)).map(paper => paper.id));
   assert.equal(data.nodes.filter(paper => paper.is_seed).length, 5);
 });
 test('backend author evidence renders names, reference evidence handles empty records, and provenance is retained', () => {
