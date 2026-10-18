@@ -151,7 +151,9 @@ graph.json                Example/generated graph output
 The competition deliverable is a working research discovery experience with a public source repository, setup instructions, documented APIs and tools, and enough technical detail for evaluation. The repository contains the pipeline contract, checker, frontend interaction documentation, Docker packaging, and tests needed to inspect and run the project.
 
 All links and identities in the bundled demo graph are fictional placeholders. A production deployment should connect the pipeline output to a hosted backend and serve the frontend separately from the model endpoint, with API credentials stored in the deployment environment.
-# Scinapse project
+
+
+# Quick Start
 
 
 Run the API and React application using [frontend/README.md](frontend/README.md). The backend remains available as `uv run scinapse build` and `uv run scinapse check`.
