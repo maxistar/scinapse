@@ -1,6 +1,6 @@
 # Scinapse research explorer
 
-A React + TypeScript frontend for the repository's large fictional research graph dataset: 40 papers and 120 relationships. Publication-year filters derive their bounds from the dataset.
+A React + TypeScript frontend for the repository's large fictional research graph dataset: 40 papers and 120 relationships. The quality filter uses each paper’s overall research-assessment score.
 
 ## Run locally
 
@@ -12,6 +12,12 @@ npm run dev
 
 Open the local URL printed by Vite. Run `npm run build` for a production build, `npm run preview` to serve it, and `npm test` for the graph-selection and timeline checks (Node.js 22.18+ or 24+).
 
+## Research setup
+
+New sessions open a minimal search page. Enter a question or expand Starting papers to select matching fictional papers by title, author, ID or URL, or save external DOI/PMID/URL/title references for later lookup. The sample shortcut loads the original question and seeds. The graph displays the submitted query as read-only text. Clicking the Scinapse logo returns to a blank search page to begin a new exploration. Submitting creates a new research session; the previous query cannot be edited in place. Inputs and chosen seeds persist in local browser storage. Export includes the research inputs and the original assessment context.
+
+This is a frontend demo: external references remain visibly pending, no live lookup or discovery runs, and existing relevance scores and relationships are not recalculated for the new query. Selected sample seeds control the graph's blue seed styling and starting-paper filter.
+
 ## Data and interactions
 
 The application imports `../sample_response.large.json` directly; there is no copied dataset. Reload after external JSON changes. No backend, API keys, live discovery, or generated assessments are used.
@@ -19,6 +25,7 @@ The application imports `../sample_response.large.json` directly; there is no co
 - The initial view is a full-screen timeline. Single-click selects a paper and opens its information, or highlights an edge. Focus mode is opt-in: use Focus selection, the expand icon in the paper inspector, or double-click a paper/edge to bring its neighbourhood or endpoints forward. The overview remains mounted, dimmed and inert, with its viewport unchanged. Escape, the floating close icon or the backdrop dismiss focus.
 - Foreground cards use fixed readable dimensions, retain year order, relevance colors, blue seeds and display-score line widths, and automatically fit within the window without scrollbars. Compact cards omit the score/action strip; click a card for information or double-click to explore its neighbourhood. Larger neighbourhoods can be zoomed and panned with the icon controls. Empty year gaps are condensed only in focus mode. Foreground papers are highlighted through their border, without status labels. Single-click a foreground card to inspect it; double-click it to explore its neighbourhood. The focus window has no header or footer. Details stay optional, including in edge focus.
 - Selecting a paper highlights its direct neighbours in the currently enabled relationship types and fades unrelated papers. This applies to both overview and focus mode. Edges connect at the centers of card sides; longer curves route around intermediate rows.
+- Minimum paper quality filters by `research_assessment.overall_score` on a 0–100 slider. Any includes unassessed papers; a positive minimum excludes unassessed candidate papers. Seed papers bypass the quality threshold and remain visible regardless of their score; collection and search filters still apply.
 - Publication year determines vertical position, with proportional spacing and newest work at the top. Filtering retains each remaining paper's original position.
 - Paper cards use a compact layout on an ivory canvas. Starting papers have a distinct blue fill and a Seed label. Select a paper to inspect relevance, evidence, quality dimensions, and publication status.
 - Relationship filters apply before representative-edge selection. Each unordered paper pair shows its highest display score, ties use edge ID, and citation direction is preserved. The + badge opens that pair in focus; relationship evidence remains available through disclosures in the paper Connections tab.
