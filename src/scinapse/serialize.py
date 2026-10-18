@@ -381,6 +381,11 @@ def build_document(state: GraphState, drafts: list[EdgeDraft]) -> dict:
                              "source_url": e["source_url"], "provenance": e["provenance"]})
 
     state.warnings.add(W.PARTIAL_QUALITY_ASSESSMENT)
+    # warnings carry s2 ids internally; the contract wants node ids (paper_NNN)
+    warnings = [{"code": wd["code"],
+                 "node_id": alloc.paper_of(wd["node_id"]) if wd["node_id"] else None,
+                 "message": wd["message"]}
+                for wd in state.warnings.to_json()]
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -392,6 +397,6 @@ def build_document(state: GraphState, drafts: list[EdgeDraft]) -> dict:
         "edges": edges,
         "evidence": evidence,
         "next_cursor": None,
-        "warnings": state.warnings.to_json(),
+        "warnings": warnings,
         "graph_view": GRAPH_VIEW,
     }

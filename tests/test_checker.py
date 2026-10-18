@@ -10,6 +10,7 @@ from scinapse.config import BuildConfig
 from scinapse.discovery import GraphState, PaperRec
 from scinapse.edges import EdgeDraft
 from scinapse.serialize import build_document
+from scinapse import warnings as W
 
 SAMPLE = Path(__file__).resolve().parents[1] / "sample_response.json"
 
@@ -42,6 +43,7 @@ def _minimal_document():
     state.papers[a.s2_id] = a
     state.papers[b.s2_id] = b
     state.citation_pairs.add((b.s2_id, a.s2_id))  # b cites a (verified)
+    state.warnings.add(W.OPENALEX_UNMATCHED, node_id=b.s2_id)  # s2 id in, node id out
     a.evidence_lines = ["seed paper — your starting collection"]
     b.evidence_lines = ["cites 1 seed paper(s): Seed paper about melanoma single cells."]
     drafts = [
@@ -119,3 +121,19 @@ def test_quote_containment_enforced():
     ev["quote"] = "This sentence is not in the abstract."
     errors = check(doc)
     assert any("quote not contained" in e for e in errors)
+
+
+def test_warning_node_ids_are_remapped_to_node_ids():
+    """Paper-specific warnings must leave the serializer as paper_NNN, not s2 ids."""
+    import re
+    doc = _minimal_document()
+    paper_specific = [wd for wd in doc["warnings"] if wd["code"] == "OPENALEX_UNMATCHED"]
+    assert paper_specific, "fixture should carry one paper-specific warning"
+    assert all(re.fullmatch(r"paper_\d{3}", wd["node_id"]) for wd in paper_specific)
+
+
+def test_warning_node_id_must_reference_a_node():
+    doc = _minimal_document()
+    doc["warnings"][0]["node_id"] = "84f7a5abaea72a35ec19"  # raw external id
+    errors = check(doc)
+    assert any("not a node id" in e for e in errors)

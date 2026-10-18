@@ -240,6 +240,12 @@ def check(doc: dict) -> list[str]:
             if rid not in node_ids:
                 errors.append(f"{w}: shared_reference_id {rid} not a node")
 
+    # warnings ------------------------------------------------------------
+    for i, warn in enumerate(doc.get("warnings") or []):
+        nid = warn.get("node_id")
+        if nid is not None and nid not in node_ids:
+            errors.append(f"warnings[{i}].node_id: {nid!r} not a node id")
+
     # evidence ------------------------------------------------------------
     abstracts = {n["id"]: (n.get("abstract") or {}).get("text") for n in nodes}
     titles = {n["id"]: n.get("title") for n in nodes}

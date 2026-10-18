@@ -55,7 +55,9 @@ Invariants that were bugs once — keep them true:
 - `checker.py` validates structure **and semantics**: key order mirrors the sample,
   weighted-rubric relevance scores are recomputed, quotes must be contained in the
   source abstract/title, `display_score.value` must mirror edge strength, edge
-  endpoints must exist.
+  endpoints must exist, warning `node_id`s must reference document nodes
+  (`paper_NNN` — warnings carry s2 ids internally and are remapped in
+  `serialize.build_document`).
 - Quote containment is checked *after normalization* (`textutil.normalize_text`:
   casefold + whitespace collapse + NFKC + typographic punctuation folding), and the
   assessor uses the same function to pre-verify quotes. LLMs transcribe curly
