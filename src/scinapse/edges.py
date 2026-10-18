@@ -15,7 +15,7 @@ import math
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-from .discovery import GraphState
+from .discovery import GraphState, short_title
 from .similarity import SimResult
 
 
@@ -200,5 +200,31 @@ def build_similarity_edges(state: GraphState, sim: SimResult) -> list[EdgeDraft]
                 components={"raw_cosine": round(raw, 4)},
             ))
             added += 1
+    # 2) web-retrieved papers keep their best-seed edge even below the threshold —
+    # the queries came from the seeds, so the pair is semantically connected by
+    # construction (floor 0.05 keeps genuinely unrelated noise out)
+    seed_idx = [i for i, p in enumerate(ids) if state.papers[p].is_seed]
+    if seed_idx:
+        edge_keys = {tuple(sorted((d.src, d.dst))) for d in out}
+        for i, pid in enumerate(ids):
+            rec = state.papers[pid]
+            if rec.entry != "web" or rec.is_seed:
+                continue
+            if any(pid in k for k in edge_keys):
+                continue
+            j = max(seed_idx, key=lambda k: sim.matrix[i][k])
+            raw = float(sim.matrix[i][j])
+            if raw < 0.05:
+                print(f"    web entry without semantic neighbour: "
+                      f"{short_title(rec.title, 50)} (best seed cosine {raw:.2f})", flush=True)
+                continue
+            key = tuple(sorted((pid, ids[j])))
+            edge_keys.add(key)
+            out.append(EdgeDraft(
+                src=key[0], dst=key[1], type="similar_to", directed=False,
+                strength_value=round((raw + 1) / 2, 4), metric="abstract_cosine_similarity",
+                range_=(0, 1), method_version=sim.method_version + "+map01",
+                components={"raw_cosine": round(raw, 4), "below_threshold": True},
+            ))
     print(f"    similar_to edges: {len(out)}", flush=True)
     return out

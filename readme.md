@@ -1,6 +1,6 @@
 # Scinapse
 
-Scinapse is a research-paper discovery app that turns a research question and a collection of seed DOIs into a ranked, traceable graph of related publications. It combines citation expansion, metadata enrichment, similarity scoring, optional Nebius Token Factory assessments, and an interactive React explorer.
+Scinapse is a research-paper discovery app that turns a research question and a collection of seed DOIs into a ranked, traceable graph of related publications. It combines citation expansion, seed-derived Tavily web search, metadata enrichment, similarity scoring, optional Nebius Token Factory assessments, and an interactive React explorer.
 
 This project was created as part of a research and AI application competition.
 
@@ -26,6 +26,9 @@ Research question + 1–10 seed DOIs
  Semantic Scholar citation discovery
                  |
                  v
+ Tavily scholarly web search (optional)
+                 |
+                 v
       OpenAlex metadata enrichment
                  |
                  v
@@ -43,21 +46,53 @@ Research question + 1–10 seed DOIs
 
 The backend runs one background research job at a time. The frontend submits an exploration, polls its progress, and loads the validated graph when the job completes. The service exposes health, job status, graph, and interactive API documentation endpoints.
 
+## Retrieval flow
+
+```mermaid
+flowchart TD
+    IN["Seed DOIs + research question"] --> SEEDS["1. Seed resolution<br/>(Semantic Scholar)"]
+    SEEDS --> BFS["2. Forward-citation BFS layers<br/>(papers citing the seeds, top-K/layer)"]
+    SEEDS --> TOP["3. Top entry<br/>(latest by seed author / topic search)"]
+    SEEDS --> WQ
+
+    subgraph WEBSEARCH ["4. Web-search entry (Tavily)"]
+        direction TB
+        WQ["Query construction from seed papers<br/>LLM (Token Factory) — TF-IDF fallback"]
+        WT["Tavily search<br/>scholarly domains only, disk-cached"]
+        WID["Identifier extraction<br/>DOI / arXiv / PMID / S2 id"]
+        WRES["Semantic Scholar resolution<br/>+ dedup by paperId"]
+        WQ --> WT --> WID --> WRES
+    end
+
+    BFS --> MERGE["paper store (deduped)"]
+    TOP --> MERGE
+    WRES --> MERGE
+    MERGE --> ENRICH["5. OpenAlex enrichment<br/>(venue quality, references, topics)"]
+    ENRICH --> SIM["6. Similarity matrix<br/>(TF-IDF or embeddings)"]
+    SIM --> EDGES["7. Edges: citation_overlap /<br/>shared_author / similar_to<br/>web papers keep a guaranteed<br/>best-seed similar_to edge"]
+    EDGES --> SCORE["8. Composite scores + evidence lines"]
+    SCORE --> LLM["9. LLM relevance assessment<br/>(optional, Token Factory)"]
+    LLM --> OUT["10. Graph document (JSON)<br/>+ contract checker"]
+```
+
+Web-search budget defaults: 3 queries × top 8 results, up to 6 resolved papers pinned into the top layer (`entry="web"`); `--no-websearch` disables the step, and it degrades to a warning when `TAVILY_API_KEY` is missing. See `AGENTS.md` for the full module map and API constraints.
+
 ## Competition approaches
 
 Scinapse combines several of the suggested approaches:
 
 - Follow citation and reference networks to find papers connected to multiple seed publications.
+- Derive search queries from the seed papers (LLM with a deterministic TF-IDF fallback) and use Tavily web search restricted to scholarly domains to reach papers outside the citation graph.
 - Use TF-IDF similarity by default, with optional embeddings from Nebius Token Factory.
 - Use Nebius Token Factory for structured relevance assessment, ranking support, and explanations.
 - Combine retrieval, ranking, evidence inspection, filters, and human review in an interactive workflow.
 
-The current pipeline uses Semantic Scholar and OpenAlex for discovery and enrichment. Tavily is listed as a competition service for future agentic web context and source enrichment; the current local implementation does not call Tavily.
+The current pipeline uses Semantic Scholar and OpenAlex for discovery and enrichment, and Tavily for seed-derived scholarly web search.
 
 ## Services and APIs
 
 - [Nebius Token Factory](https://hackathons.techeurope.io/start-here/setup.md) — OpenAI-compatible LLM and embedding inference.
-- [Tavily](https://www.tavily.com/) — planned agentic search integration for web context and supporting sources.
+- [Tavily](https://www.tavily.com/) — seed-derived scholarly web search that augments citation discovery.
 - [Semantic Scholar](https://www.semanticscholar.org/product/api) — seed resolution and citation discovery.
 - [OpenAlex](https://docs.openalex.org/) — paper, author, venue, topic, and reference metadata.
 - FastAPI — local HTTP service for asynchronous research jobs.
@@ -75,6 +110,7 @@ cp .env.example .env
 Available settings:
 
 - `NEBIUS_API_KEY` enables relevance assessments and can enable embeddings when an embedding model is selected.
+- `TAVILY_API_KEY` enables the Tavily web-search entry; without it the build continues with a warning.
 - `S2_API_KEY` is optional and can improve Semantic Scholar rate limits.
 - `SCINAPSE_SMOKE=1` uses the quick local profile by default; set it to `0` for standard expansion.
 - `SCINAPSE_NO_LLM=1` explicitly skips LLM assessments.
@@ -141,11 +177,18 @@ uv run scinapse build \
   --smoke \
   --no-llm
 
+# More web-searched papers: extra queries and a higher pin cap
+uv run scinapse build \
+  --seed 10.1038/s41586-020-2649-2 \
+  --question "How can machine learning improve scientific discovery?" \
+  --out graph.json \
+  --websearch-queries 5 --websearch-pinned 12
+
 # Validate a generated graph
 uv run scinapse check graph.json
 ```
 
-The build command also supports repeated `--seed`, `--layers`, `--top-k`, `--top-entry-n`, `--recent-min-year`, `--cache-dir`, `--chat-model`, `--embed-model`, and `--strict` options.
+The build command also supports repeated `--seed`, `--layers`, `--top-k`, `--top-entry-n`, `--recent-min-year`, `--cache-dir`, `--chat-model`, `--embed-model`, `--no-llm`, `--no-websearch`, `--websearch-queries`, `--websearch-pinned`, and `--strict` options.
 
 ## Run tests
 

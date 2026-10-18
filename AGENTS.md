@@ -21,6 +21,8 @@ uv run scinapse check graph.json   # validate output against the contract
 - Always use `uv run` (deps are managed by uv; `.venv/` is committed to nothing).
 - `--smoke` = tiny profile (1 layer, small caps, 8 LLM calls) for cheap e2e verification.
 - `--no-llm` skips the Token Factory step entirely (no `NEBIUS_API_KEY` needed).
+- `--no-websearch` skips the Tavily web-search entry (also skipped silently when
+  `TAVILY_API_KEY` is missing → `WEBSEARCH_UNAVAILABLE` warning).
 - Python >= 3.10. No linters/formatters configured; match existing style
   (module docstring first line, `from __future__ import annotations`, compact code).
 
@@ -31,15 +33,21 @@ uv run scinapse check graph.json   # validate output against the contract
 1. `discovery.fetch_seeds` — resolve seed DOIs via S2
 2. `discovery.expand_layers` — forward-citation BFS (papers *citing* the layer below), top-K/layer
 3. `discovery.add_top_entry` — pin recent papers (default >= 2025) by seed authors / topic
-4. `enrich.enrich_openalex` — venue quality, retraction, affiliations, topics
-5. `similarity.build_similarity` — TF-IDF fallback, or Token Factory embeddings when `embed_model` is set
-6. `edges` — exactly 3 edge types, one [0,1] strength each: `citation_overlap`, `shared_author`, `similar_to`
-7. `discovery.finalize` — composite node scores + evidence lines
-8. `assess.assess_all` — one JSON-mode chat call per node (capped by `llm_limit`), fills the 4 relevance-rubric dimensions. Escalating token budget (2500 -> 6000) with length-truncation retry — reasoning models burn the budget before emitting content; never cache empty replies.
-9. `serialize.build_document` — emit the contract shape; `ids.py` mints sequential deterministic ids
+4. `websearch.add_web_entry` — Tavily scholarly web search (LLM queries with a TF-IDF
+   fallback, both derived from the seed papers), hits resolved to Semantic Scholar
+   papers via DOI/arXiv/PMID/S2-id extraction; best `websearch_pinned` pinned into
+   the top layer (`entry="web"`). Web papers keep a guaranteed best-seed
+   `similar_to` edge even below the similarity threshold (floor 0.05).
+5. `enrich.enrich_openalex` — venue quality, retraction, affiliations, topics
+6. `similarity.build_similarity` — TF-IDF fallback, or Token Factory embeddings when `embed_model` is set
+7. `edges` — exactly 3 edge types, one [0,1] strength each: `citation_overlap`, `shared_author`, `similar_to`
+8. `discovery.finalize` — composite node scores + evidence lines
+9. `assess.assess_all` — one JSON-mode chat call per node (capped by `llm_limit`), fills the 4 relevance-rubric dimensions. Escalating token budget (2500 -> 6000) with length-truncation retry — reasoning models burn the budget before emitting content; never cache empty replies.
+10. `serialize.build_document` — emit the contract shape; `ids.py` mints sequential deterministic ids
 
-Supporting modules: `httpjson.py` (disk-cached paced HTTP), `s2.py` / `openalex.py`
-(API clients), `config.py` (BuildConfig, DOI normalization, dotenv, exploration_id),
+Supporting modules: `httpjson.py` (disk-cached paced HTTP), `s2.py` / `openalex.py` /
+`tavily.py` (API clients), `websearch.py` (the Tavily web-search step),
+`config.py` (BuildConfig, DOI normalization, dotenv, exploration_id),
 `checker.py` (contract validation), `static_blocks.py` (assessment_policy etc. copied
 from the sample), `warnings.py` (run diagnostics), `textutil.py` (shared text
 normalizer — see contract section).
@@ -82,6 +90,12 @@ Invariants that were bugs once — keep them true:
   `/paper/search` rate-limits hardest.
 - All HTTP goes through `httpjson.Http` → `.scinapse_cache/` (gitignored). Reruns
   are cheap; don't bypass the cache or the pacing.
+- **Tavily** (web-search entry): metered free tier — 1 credit per basic search.
+  POSTs are NOT cached by `httpjson`; `tavily.py` keeps a manual body-keyed disk
+  cache (`Http.cache_path`) so reruns cost nothing. Bearer auth with
+  `TAVILY_API_KEY` (`.env`); search restricted to scholarly domains
+  (`websearch_domains`). 432/433 are plan limits → one `WEBSEARCH_UNAVAILABLE`
+  warning and the step aborts.
 - LLM access is OpenAI-compatible at `https://api.tokenfactory.nebius.com/v1/`
   with `NEBIUS_API_KEY` (`.env`, gitignored). `S2_API_KEY` is optional.
 

@@ -37,6 +37,29 @@ class S2Client:
         """Resolve a seed DOI. Raises ApiError(404) when unknown."""
         return self._get(f"/paper/DOI:{doi}", fields=S2_FIELDS)
 
+    def fetch_paper(self, paper_id: str) -> dict:
+        """Resolve an S2 sha id (e.g. from a semanticscholar.org URL)."""
+        return self._get(f"/paper/{paper_id}", fields=S2_FIELDS)
+
+    def fetch_paper_by_arxiv(self, arxiv_id: str) -> dict:
+        return self._get(f"/paper/arXiv:{arxiv_id}", fields=S2_FIELDS)
+
+    def fetch_paper_by_pmid(self, pmid: str) -> dict:
+        return self._get(f"/paper/PMID:{pmid}", fields=S2_FIELDS)
+
+    def match_paper_by_title(self, title: str) -> dict | None:
+        """Single best title match; None when S2 has no confident match.
+
+        Search-family endpoint (rejects ``tldr``), retried leniently.
+        """
+        try:
+            return self._get("/paper/search/match", retries=2,
+                             query=title, fields=S2_FIELDS_LIST)
+        except ApiError as e:
+            if e.code in (400, 404):
+                return None
+            raise
+
     def fetch_citations(self, paper_id: str, *, offset: int | None = None, limit: int = 100) -> dict:
         params = {"fields": S2_FIELDS_LIST, "limit": limit}
         if offset is not None:

@@ -9,6 +9,10 @@ from pathlib import Path
 
 DEFAULT_MAILTO = "nonvisual.wrk@gmail.com"  # polite-pool identifier for both APIs
 DEFAULT_CHAT_MODEL = "nvidia/nemotron-3-super-120b-a12b"  # JSON-mode capable on Token Factory
+DEFAULT_WEBDOMAINS = (  # Tavily include_domains — scholarly sites with parseable ids
+    "arxiv.org", "www.biorxiv.org", "biorxiv.org", "www.medrxiv.org", "medrxiv.org",
+    "pubmed.ncbi.nlm.nih.gov", "doi.org", "www.semanticscholar.org", "semanticscholar.org",
+)
 
 _DOI_PREFIXES = ("https://doi.org/", "http://doi.org/", "doi.org/", "DOI:", "doi:")
 
@@ -24,17 +28,26 @@ def normalize_doi(doi: str) -> str:
     return d.strip()
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]  # src/scinapse/config.py -> repo root
+
+
 def load_dotenv(path: Path | None = None) -> None:
-    """Minimal .env loader: KEY=VALUE lines, no overrides of existing env."""
-    p = path or Path(".env")
-    if not p.exists():
-        return
-    for line in p.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#") or "=" not in line:
+    """Minimal .env loader: KEY=VALUE lines, no overrides of existing env.
+
+    With no explicit path, loads ``./.env`` and then the repo-root ``.env``
+    (first file wins per key) — CLI runs from subdirectories (e.g. ``frontend/``)
+    still find their keys.
+    """
+    candidates = [path] if path else [Path(".env"), REPO_ROOT / ".env"]
+    for p in candidates:
+        if not p.exists():
             continue
-        key, _, value = line.partition("=")
-        os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+        for line in p.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            os.environ.setdefault(key.strip(), value.strip().strip("'\""))
 
 
 def nebius_api_key() -> str | None:
@@ -44,6 +57,11 @@ def nebius_api_key() -> str | None:
 def s2_api_key() -> str | None:
     """Optional Semantic Scholar key — raises the shared-pool rate ceiling."""
     return os.environ.get("S2_API_KEY") or None
+
+
+def tavily_api_key() -> str | None:
+    """Tavily key for the web-search entry (free tier is metered)."""
+    return os.environ.get("TAVILY_API_KEY") or None
 
 
 @dataclass(frozen=True)
@@ -71,6 +89,14 @@ class BuildConfig:
     refs_threshold: float = 0.08
     refs_min_intersection: int = 5
     refs_top_k: int = 3
+    # web-search entry (Tavily -> Semantic Scholar)
+    websearch_enabled: bool = True
+    websearch_queries: int = 3
+    websearch_results: int = 8        # Tavily max_results per query
+    websearch_pinned: int = 6         # max resolved papers pinned into the top layer
+    websearch_title_matches: int = 4  # S2 title-match fallbacks (rate-limit-heaviest family)
+    websearch_domains: tuple[str, ...] = DEFAULT_WEBDOMAINS
+    tavily_min_interval: float = 1.0
 
     @property
     def normalized_seeds(self) -> tuple[str, ...]:
@@ -87,7 +113,9 @@ class BuildConfig:
 
     def smoke(self) -> "BuildConfig":
         """Tiny cheap profile mirroring the notebook's SCINAPSE_SMOKE."""
-        return replace(self, layers=1, top_k_per_layer=4, top_entry_n=2, llm_limit=8)
+        return replace(self, layers=1, top_k_per_layer=4, top_entry_n=2, llm_limit=8,
+                       websearch_queries=1, websearch_results=3, websearch_pinned=2,
+                       websearch_title_matches=1)
 
 
 def exploration_id(seeds: tuple[str, ...] | list[str], question: str) -> str:

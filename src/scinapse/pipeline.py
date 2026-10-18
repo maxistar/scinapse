@@ -6,7 +6,7 @@ import time
 
 from . import warnings as W  # noqa: F401  (re-exported for convenience)
 from .assess import assess_all, make_client
-from .config import BuildConfig
+from .config import BuildConfig, tavily_api_key
 from .discovery import GraphState, add_top_entry, expand_layers, fetch_seeds, finalize
 from .edges import build_citation_overlap_edges, build_shared_author_edges, build_similarity_edges
 from .enrich import enrich_openalex
@@ -15,6 +15,8 @@ from .openalex import OpenAlexClient
 from .s2 import S2Client
 from .serialize import build_document
 from .similarity import build_similarity
+from .tavily import TavilyClient
+from .websearch import add_web_entry
 
 
 def run(cfg: BuildConfig, *, tf_client=None, no_llm: bool = False, on_progress=None) -> dict:
@@ -42,28 +44,33 @@ def run(cfg: BuildConfig, *, tf_client=None, no_llm: bool = False, on_progress=N
     report(3, "Finding recent related research")
     print("3) top entry: latest by author / by topic", flush=True)
     add_top_entry(state, s2)
-    report(4, "Enriching publication metadata")
-    print("4) OpenAlex enrichment (single-record calls)", flush=True)
+    report(4, "Searching the scholarly web")
+    print("4) web search entry: Tavily -> Semantic Scholar", flush=True)
+    tavily = (TavilyClient(http, tavily_api_key(), cfg.tavily_min_interval)
+              if cfg.websearch_enabled and tavily_api_key() else None)
+    add_web_entry(state, s2, tavily, tf_client, http)
+    report(5, "Enriching publication metadata")
+    print("5) OpenAlex enrichment (single-record calls)", flush=True)
     enrich_openalex(state, oa)
-    report(5, "Comparing paper texts")
-    print("5) similarity (title+abstract)", flush=True)
+    report(6, "Comparing paper texts")
+    print("6) similarity (title+abstract)", flush=True)
     embed_client = tf_client if cfg.embed_model else None
     sim = build_similarity(state, embed_client, cfg.embed_model)
-    report(6, "Building relationships")
-    print("6) edges: citation_overlap / shared_author / similar_to", flush=True)
+    report(7, "Building relationships")
+    print("7) edges: citation_overlap / shared_author / similar_to", flush=True)
     drafts = (build_citation_overlap_edges(state)
               + build_shared_author_edges(state)
               + build_similarity_edges(state, sim))
     print(f"    citation_overlap edges: {sum(1 for d in drafts if d.type == 'citation_overlap')}",
           flush=True)
-    report(7, "Collecting evidence")
-    print("7) internal composite scores + evidence lines", flush=True)
+    report(8, "Collecting evidence")
+    print("8) internal composite scores + evidence lines", flush=True)
     finalize(state, drafts)
-    report(8, "Assessing relevance")
-    print("8) Token Factory assessment", flush=True)
+    report(9, "Assessing relevance")
+    print("9) Token Factory assessment", flush=True)
     assess_all(state, tf_client, http)
-    report(9, "Preparing the graph")
-    print("9) serialize", flush=True)
+    report(10, "Preparing the graph")
+    print("10) serialize", flush=True)
     doc = build_document(state, drafts)
     print(f"   -> {len(doc['nodes'])} nodes / {len(doc['edges'])} edges "
           f"in {time.time() - t0:.0f}s", flush=True)
