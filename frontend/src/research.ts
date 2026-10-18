@@ -16,8 +16,10 @@ export function normalizeResearch(value: unknown, validIds: string[]): ResearchS
   return query || seedIds.length || references.length ? { query, seedIds, references } : null;
 }
 
-export function readResearch(validIds: string[]): ResearchSession | null {
-  try { return normalizeResearch(JSON.parse(localStorage.getItem('scinapse-research:v1') || 'null'), validIds); }
+export function researchStorageKey(explorationId: string) { return `scinapse-research:v2:${explorationId}`; }
+
+export function readResearch(validIds: string[], explorationId: string): ResearchSession | null {
+  try { return normalizeResearch(JSON.parse(localStorage.getItem(researchStorageKey(explorationId)) || 'null'), validIds); }
   catch { return null; }
 }
 

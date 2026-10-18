@@ -8,15 +8,20 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
+    "fastapi>=0.144.0",
     "openai>=1.40",
     "scikit-learn>=1.5",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
 scinapse = "scinapse.cli:main"
 
 [dependency-groups]
-dev = ["pytest>=8.0"]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=8.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.12.0,<0.13.0"]

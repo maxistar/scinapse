@@ -6,7 +6,7 @@ COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
 COPY frontend/ ./
-COPY sample_response.large.json /app/sample_response.large.json
+COPY graph.json /app/graph.json
 
 RUN npm run build
 

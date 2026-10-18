@@ -1,12 +1,13 @@
 export interface Evidence {
   id: string; type: string; paper_id: string; quote?: string; source_field?: string;
-  source_url: string | null; provenance: string; referenced_paper_ids?: string[];
+  source_url: string | null; provenance: string; referenced_paper_ids?: string[]; author_names?: string[];
 }
 export interface Assessment {
   assessment: string; reason: string; evidence_ids: string[];
 }
 export interface Paper {
   id: string; title: string; year: number | null; is_seed: boolean; url: string;
+  identifiers?: { doi?: string | null; pmid?: string | null };
   authors: { name: string }[]; institutions: { name: string }[];
   journal: string | null; abstract_available: boolean;
   abstract: { text: string; source_url: string } | null;
@@ -25,12 +26,32 @@ export interface Edge {
   display_score: { value: number | null; method: string };
 }
 export interface GraphData {
+  exploration_id: string; warnings: { code: string; node_id: string | null; message: string }[];
   research_question: string; is_demo: boolean; nodes: Paper[]; edges: Edge[]; evidence: Evidence[];
   next_cursor: string | null;
 }
 export const relationshipLabels: Record<string, string> = {
-  cites: 'Citations', similar_to: 'Semantic similarity', shared_references: 'Shared references',
+  citation_overlap: 'Citation overlap', shared_author: 'Shared authors', similar_to: 'Semantic similarity',
+  cites: 'Citations', shared_references: 'Shared references',
 };
+export const relationshipDescriptions: Record<string, string> = {
+  citation_overlap: 'Combines direct citation records and reference-list overlap. Overlap alone does not establish a direct citation.',
+  shared_author: 'Author overlap between the two papers.',
+  similar_to: 'Semantic similarity between the paper texts.',
+};
+export function relationshipLabel(type: string) {
+  return relationshipLabels[type] ?? type.replaceAll('_', ' ').replace(/^./, c => c.toUpperCase());
+}
+export function evidenceDescription(evidence: Evidence, papers: Paper[]): string {
+  if (evidence.quote) return `“${evidence.quote}”`;
+  if (evidence.type === 'author_list') return evidence.author_names?.length ? `Authors: ${evidence.author_names.join(', ')}` : 'No author names included in this evidence record.';
+  if (evidence.type === 'reference_list') return evidence.referenced_paper_ids?.length ? `References: ${evidence.referenced_paper_ids.map(id => papers.find(p => p.id === id)?.title ?? id).join('; ')}` : 'No references included in this evidence record.';
+  return 'Evidence details are available at the source.';
+}
+export function passesQuality(paper: Paper, minimum: number): boolean {
+  const score = qualityScore(paper);
+  return paper.is_seed || minimum === 0 || (score !== null && score >= minimum / 100);
+}
 export const NODE_WIDTH = 224;
 export const NODE_HEIGHT = 72;
 
@@ -125,7 +146,7 @@ export function focusSubgraph(papers: Paper[], edges: Edge[], target: FocusTarge
 }
 
 export const FOCUS_NODE_WIDTH = 282;
-export const FOCUS_NODE_HEIGHT = 96;
+export const FOCUS_NODE_HEIGHT = 126;
 
 export function layoutFocus(papers: Paper[], availableWidth: number) {
   const knownYears = papers.flatMap(p => p.year === null ? [] : [p.year]);
@@ -139,7 +160,7 @@ export function layoutFocus(papers: Paper[], availableWidth: number) {
   const rowY = new Map<number | null, number>();
   let cursorY = 78;
   years.forEach((year, index) => {
-    if (index > 0) { const previous = years[index - 1]; cursorY += year !== null && previous !== null ? Math.min(146, 126 + (previous - year - 1) * 5) : 136; }
+    if (index > 0) { const previous = years[index - 1]; cursorY += year !== null && previous !== null ? Math.min(176, 156 + (previous - year - 1) * 5) : 166; }
     rowY.set(year, cursorY);
   });
   const yearY = (year: number | null) => rowY.get(year) ?? 110;
@@ -148,7 +169,7 @@ export function layoutFocus(papers: Paper[], availableWidth: number) {
     const row = papers.filter(p => p.year === year).sort((a, b) => a.id.localeCompare(b.id));
     row.forEach((paper, index) => positions.set(paper.id, { x: width / 2 + 25 + (index - (row.length - 1) / 2) * 318, y: yearY(year) }));
   }
-  return { width, height: Math.max(230, ...[...positions.values()].map(p => p.y + 82)), positions, years, yearY };
+  return { width, height: Math.max(230, ...[...positions.values()].map(p => p.y + FOCUS_NODE_HEIGHT / 2 + 34)), positions, years, yearY };
 }
 export function fitGraphScale(width: number, height: number, viewportWidth: number, viewportHeight: number) {
   return Math.max(.01, Math.min(1, Math.max(1, viewportWidth - 32) / width, Math.max(1, viewportHeight - 32) / height));

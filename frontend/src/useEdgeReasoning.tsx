@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { relationshipLabels, type Edge } from './graph';
+import { relationshipLabel, type Edge } from './graph';
 
 type Preview = { edge: Edge; x: number; y: number };
 
@@ -40,7 +40,7 @@ export default function useEdgeReasoning() {
   }, [preview]);
 
   const tooltip = preview && createPortal(<div ref={panel} id={id} role="tooltip" className="edge-reasoning-tooltip" style={position} onPointerEnter={keep} onPointerLeave={hide}>
-    <span>{relationshipLabels[preview.edge.type] ?? 'Connection'}</span>
+    <span>{relationshipLabel(preview.edge.type)}</span>
     <p>{preview.edge.reasoning.summary || 'No reasoning is available for this connection.'}</p>
   </div>, document.body);
 
