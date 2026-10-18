@@ -31,6 +31,10 @@ def _build_parser() -> argparse.ArgumentParser:
     b.add_argument("--no-llm", action="store_true", help="skip Token Factory assessments")
     b.add_argument("--no-websearch", action="store_true",
                    help="skip the Tavily web-search entry")
+    b.add_argument("--websearch-queries", type=int, default=None,
+                   help="Tavily queries derived from the seeds (default 3)")
+    b.add_argument("--websearch-pinned", type=int, default=None,
+                   help="max web-search papers pinned into the graph (default 6)")
     b.add_argument("--smoke", action="store_true", help="tiny cheap profile (1 layer, small caps)")
     b.add_argument("--strict", action="store_true", help="exit 1 if the checker reports errors")
 
@@ -61,6 +65,10 @@ def main(argv: list[str] | None = None) -> int:
     overrides = {}
     if args.cache_dir:
         overrides["cache_dir"] = Path(args.cache_dir)
+    if args.websearch_queries is not None:
+        overrides["websearch_queries"] = args.websearch_queries
+    if args.websearch_pinned is not None:
+        overrides["websearch_pinned"] = args.websearch_pinned
     cfg = BuildConfig(
         seeds=tuple(args.seed),
         question=args.question,
