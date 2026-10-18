@@ -1,0 +1,29 @@
+[project]
+name = "scinapse"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "nonvisual", email = "nonvisual.wrk@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "ipykernel>=7.3.0",
+    "jupyterlab>=4.6.4",
+    "matplotlib>=3.10.9",
+    "networkx>=3.4.2",
+    "numpy>=2.2.6",
+    "openai>=3.35.1",
+    "pandas>=2.3.3",
+    "pyvis>=0.3.2",
+    "requests>=2.34.2",
+    "scikit-learn>=1.7.2",
+    "tavily-python>=0.8.5",
+]
+
+[project.scripts]
+hackproject = "hackproject:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"

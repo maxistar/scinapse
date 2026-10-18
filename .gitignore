@@ -1,0 +1,5 @@
+.env
+.scinapse_cache/
+.ipynb_checkpoints/
+.claude/
+*:Zone.Identifier
