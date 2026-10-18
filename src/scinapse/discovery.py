@@ -49,7 +49,7 @@ class PaperRec:
     pmcid: str | None
     is_seed: bool = False
     layer: int | None = None
-    entry: str | None = None  # "author" | "topic" for latest papers
+    entry: str | None = None  # "author" | "topic" | "web" for latest papers
 
     # OpenAlex enrichment (filled by enrich.py)
     oa_work_url: str | None = None

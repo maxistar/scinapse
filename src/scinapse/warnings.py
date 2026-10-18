@@ -13,6 +13,7 @@ LLM_UNAVAILABLE = "LLM_UNAVAILABLE"
 OPENALEX_UNMATCHED = "OPENALEX_UNMATCHED"
 S2_RATE_LIMITED = "S2_RATE_LIMITED"
 TOPIC_SEARCH_UNAVAILABLE = "TOPIC_SEARCH_UNAVAILABLE"
+WEBSEARCH_UNAVAILABLE = "WEBSEARCH_UNAVAILABLE"
 PARTIAL_QUALITY_ASSESSMENT = "PARTIAL_QUALITY_ASSESSMENT"
 
 MESSAGES = {
@@ -24,6 +25,8 @@ MESSAGES = {
     OPENALEX_UNMATCHED: "DOI not matched on OpenAlex; affiliations, topics, and reference lists are unavailable.",
     S2_RATE_LIMITED: "A Semantic Scholar request exhausted its retries and was skipped.",
     TOPIC_SEARCH_UNAVAILABLE: "Topic search failed; latest-by-author entry is still applied.",
+    WEBSEARCH_UNAVAILABLE: "Web search entry is unavailable (no Tavily key, quota exhausted, "
+                           "or search failed); the graph is built from Semantic Scholar and OpenAlex only.",
     PARTIAL_QUALITY_ASSESSMENT: "Quality dimensions are assessed from abstracts only; full text was not inspected.",
 }
 

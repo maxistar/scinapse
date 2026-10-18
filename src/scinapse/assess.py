@@ -58,7 +58,7 @@ def make_client():
     return OpenAI(base_url=TOKEN_FACTORY_BASE, api_key=key)
 
 
-def _extract_json(text: str) -> dict:
+def extract_json(text: str) -> dict:
     text = (text or "").strip()
     if text.startswith("```"):
         text = re.sub(r"^```[a-zA-Z]*\s*|\s*```$", "", text)
@@ -150,12 +150,12 @@ def assess_one(cfg: BuildConfig, client, http: Http, rec: PaperRec) -> dict:
             raw = _chat(client, cfg.chat_model, prompt)
             if not raw.strip():
                 return {"error": "llm returned an empty reply (reasoning budget exhausted?)"}
-            if not _extract_json(raw):
+            if not extract_json(raw):
                 raw = _chat(client, cfg.chat_model, prompt, repair=raw[:400])
             cache_key.write_text(raw, encoding="utf-8")
         except Exception as e:
             return {"error": f"llm call failed: {e}"}
-    data = _extract_json(raw)
+    data = extract_json(raw)
     if not data:
         return {"error": "llm reply was not valid JSON"}
 

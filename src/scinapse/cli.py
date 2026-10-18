@@ -29,6 +29,8 @@ def _build_parser() -> argparse.ArgumentParser:
     b.add_argument("--chat-model", default=DEFAULT_CHAT_MODEL)
     b.add_argument("--embed-model", default="", help="Token Factory embedding model ('' = TF-IDF)")
     b.add_argument("--no-llm", action="store_true", help="skip Token Factory assessments")
+    b.add_argument("--no-websearch", action="store_true",
+                   help="skip the Tavily web-search entry")
     b.add_argument("--smoke", action="store_true", help="tiny cheap profile (1 layer, small caps)")
     b.add_argument("--strict", action="store_true", help="exit 1 if the checker reports errors")
 
@@ -68,6 +70,7 @@ def main(argv: list[str] | None = None) -> int:
         recent_min_year=args.recent_min_year,
         chat_model=args.chat_model,
         embed_model=args.embed_model,
+        websearch_enabled=not args.no_websearch,
         **overrides,
     )
     if args.smoke:

@@ -85,7 +85,7 @@ def create_app(runner=None) -> FastAPI:
                 log.error("Graph validation failed for %s: %s", job_id, errors)
                 raise ValueError("No valid graph was produced")
             with lock:
-                jobs[job_id].update(status="completed", stage=9, message="Research ready", graph=graph)
+                jobs[job_id].update(status="completed", stage=10, message="Research ready", graph=graph)
         except Exception:
             log.exception("Research job %s failed", job_id)
             with lock:
@@ -110,7 +110,7 @@ def create_app(runner=None) -> FastAPI:
             while len(jobs) >= 20:
                 del jobs[next(iter(jobs))]
             job_id = uuid.uuid4().hex
-            jobs[job_id] = {"id": job_id, "status": "queued", "stage": 0, "total_stages": 9,
+            jobs[job_id] = {"id": job_id, "status": "queued", "stage": 0, "total_stages": 10,
                             "message": "Waiting to start", "question": request.question,
                             "profile": "smoke" if smoke else "standard", "assessments_enabled": not no_llm,
                             "created_at": time.time(), "finished_at": None, "graph": None}
