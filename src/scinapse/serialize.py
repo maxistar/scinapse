@@ -7,14 +7,13 @@ internal composite desc, then s2 id).
 
 from __future__ import annotations
 
-import re
-
 from . import warnings as W
 from .config import BuildConfig, exploration_id
 from .discovery import GraphState, PaperRec, short_title
 from .edges import EdgeDraft
 from .ids import IdAllocator
 from .static_blocks import ASSESSMENT_POLICY, GRAPH_VIEW, SCHEMA_VERSION
+from .textutil import first_sentence
 
 EDGE_SUFFIX = {"citation_overlap": "citation_overlap", "shared_author": "shared_author",
                "similar_to": "similarity"}
@@ -22,13 +21,6 @@ EDGE_ORDER = {"citation_overlap": 0, "shared_author": 1, "similar_to": 2}
 
 WEIGHTS = ASSESSMENT_POLICY["relevance_scoring"]["weights"]
 THRESHOLDS = ASSESSMENT_POLICY["relevance_scoring"]["assessment_thresholds"]
-
-_SENTENCE = re.compile(r"(?<=[.!?])\s+")
-
-
-def first_sentence(text: str, cap: int = 400) -> str:
-    s = _SENTENCE.split((text or "").strip(), 1)[0].strip()
-    return s if len(s) <= cap else s[: cap - 1] + "…"
 
 
 def relevance_bucket(score: float | None) -> str:

@@ -16,6 +16,7 @@ from __future__ import annotations
 import re
 
 from .static_blocks import ASSESSMENT_POLICY
+from .textutil import normalize_text
 
 TOP = ["schema_version", "exploration_id", "is_demo", "research_question", "assessment_policy",
        "nodes", "edges", "evidence", "next_cursor", "warnings", "graph_view"]
@@ -81,7 +82,7 @@ def _keys_in_order(obj: dict, expected: list[str], where: str, errors: list[str]
 
 
 def _norm(s: str) -> str:
-    return re.sub(r"\s+", " ", (s or "")).strip().casefold()
+    return normalize_text(s)
 
 
 def _bucket(score: float) -> str:

@@ -37,13 +37,21 @@ class EdgeDraft:
 
 
 def author_keys(rec) -> tuple[set[str], dict[str, str]]:
-    """Merged author keys (OpenAlex id preferred, s2:{id} fallback) + display names."""
+    """Author keys + display names for one paper.
+
+    When OpenAlex authorships are available, ONLY OpenAlex author ids are used
+    (canonical); the S2 ids are a fallback for papers OpenAlex did not match.
+    Mixing both would double-count every author on enriched papers and inflate
+    the Salton overlap.
+    """
     keys: set[str] = set()
     names: dict[str, str] = {}
-    for a in rec.authorships:  # OpenAlex-normalized
-        if a.get("key"):
-            keys.add(a["key"])
-            names.setdefault(a["key"], a.get("name") or a["key"])
+    if rec.authorships:
+        for a in rec.authorships:
+            if a.get("key"):
+                keys.add(a["key"])
+                names.setdefault(a["key"], a.get("name") or a["key"])
+        return keys, names
     for aid, name in rec.authors_s2:
         k = f"s2:{aid}"
         keys.add(k)

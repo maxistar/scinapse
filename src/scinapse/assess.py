@@ -17,7 +17,7 @@ from . import warnings as W
 from .config import BuildConfig, nebius_api_key
 from .discovery import GraphState, PaperRec, short_title
 from .httpjson import Http
-from .serialize import first_sentence
+from .textutil import first_sentence, normalized_contains
 
 TOKEN_FACTORY_BASE = "https://api.tokenfactory.nebius.com/v1/"
 
@@ -129,9 +129,7 @@ def _chat(client, model: str, prompt: str, *, repair: str | None = None) -> str:
 
 
 def _normalized_contains(quote: str, text: str) -> bool:
-    q = re.sub(r"\s+", " ", quote or "").strip().casefold()
-    t = re.sub(r"\s+", " ", text or "").strip().casefold()
-    return bool(q) and q in t
+    return normalized_contains(quote, text)
 
 
 def assess_one(cfg: BuildConfig, client, http: Http, rec: PaperRec) -> dict:
