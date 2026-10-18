@@ -1,6 +1,6 @@
 # Scinapse
 
-Scinapse is a research-paper discovery tool that turns a small collection of seed papers and a research question into a ranked, traceable discovery graph. It combines citation expansion, metadata enrichment, similarity scoring, and optional LLM relevance assessments with an interactive React explorer.
+Scinapse is a research-paper discovery app that turns a research question and a collection of seed DOIs into a ranked, traceable graph of related publications. It combines citation expansion, metadata enrichment, similarity scoring, optional Nebius Token Factory assessments, and an interactive React explorer.
 
 This project was created as part of a research and AI application competition.
 
@@ -12,36 +12,36 @@ Researchers often have a collection of papers relevant to their topic but strugg
 
 ## The challenge
 
-The app helps a researcher move from known papers to a ranked, traceable set of new ones. Each recommendation includes useful metadata, relationship evidence, source links, and an explanation of why it may be relevant.
+The app helps a researcher move from known papers to a ranked, traceable set of new ones. It shows useful metadata, relationship evidence, source links, warnings, and explanations of why a paper may be relevant.
 
 ## How Scinapse works
 
 ```text
-Seed DOIs + research question
-              |
-              v
-    Semantic Scholar discovery
-              |
-              v
-   Citation and author expansion
-              |
-              v
-     OpenAlex enrichment
-              |
-              v
-   Similarity and graph scoring
-              |
-              v
- Optional Nebius assessments
-              |
-              v
-       JSON graph contract
-              |
-              v
-       React graph explorer
+Research question + 1–10 seed DOIs
+                 |
+                 v
+        FastAPI research service
+                 |
+                 v
+ Semantic Scholar citation discovery
+                 |
+                 v
+      OpenAlex metadata enrichment
+                 |
+                 v
+ Similarity + citation + author edges
+                 |
+                 v
+ Optional Nebius assessments/embeddings
+                 |
+                 v
+         Validated graph JSON
+                 |
+                 v
+          React graph explorer
 ```
 
-The pipeline produces a validated JSON document containing paper nodes, relationship edges, relevance scores, evidence, warnings, and assessment details. The frontend presents that document as a timeline and connected-paper exploration interface.
+The backend runs one background research job at a time. The frontend submits an exploration, polls its progress, and loads the validated graph when the job completes. The service exposes health, job status, graph, and interactive API documentation endpoints.
 
 ## Competition approaches
 
@@ -52,32 +52,88 @@ Scinapse combines several of the suggested approaches:
 - Use Nebius Token Factory for structured relevance assessment, ranking support, and explanations.
 - Combine retrieval, ranking, evidence inspection, filters, and human review in an interactive workflow.
 
-The graph pipeline currently uses Semantic Scholar and OpenAlex for discovery and metadata enrichment. Tavily is a supported competition integration target for agentic web context and source enrichment; live Tavily lookup is not required by the local demo dataset.
+The current pipeline uses Semantic Scholar and OpenAlex for discovery and enrichment. Tavily is listed as a competition service for future agentic web context and source enrichment; the current local implementation does not call Tavily.
 
 ## Services and APIs
 
 - [Nebius Token Factory](https://hackathons.techeurope.io/start-here/setup.md) — OpenAI-compatible LLM and embedding inference.
-- [Tavily](https://www.tavily.com/) — agentic search for web context and supporting sources.
+- [Tavily](https://www.tavily.com/) — planned agentic search integration for web context and supporting sources.
 - [Semantic Scholar](https://www.semanticscholar.org/product/api) — seed resolution and citation discovery.
 - [OpenAlex](https://docs.openalex.org/) — paper, author, venue, topic, and reference metadata.
+- FastAPI — local HTTP service for asynchronous research jobs.
 
-The repository caches HTTP responses locally and applies pacing and retry behavior for external API calls. API keys are read from environment variables and are never committed.
+The pipeline caches HTTP responses in `.scinapse_cache/` and applies pacing and retry behavior for provider rate limits. Secrets are loaded from `.env` and are not committed.
 
-## Run the research pipeline
+## Configuration
 
-The Python package requires Python 3.10 or newer and uses `uv` for dependency management.
+Copy the example environment file before running the backend:
 
 ```sh
-uv sync
+cp .env.example .env
+```
 
-# Build a small, inexpensive graph for verification
+Available settings:
+
+- `NEBIUS_API_KEY` enables relevance assessments and can enable embeddings when an embedding model is selected.
+- `S2_API_KEY` is optional and can improve Semantic Scholar rate limits.
+- `SCINAPSE_SMOKE=1` uses the quick local profile by default; set it to `0` for standard expansion.
+- `SCINAPSE_NO_LLM=1` explicitly skips LLM assessments.
+- `SCINAPSE_MAILTO` optionally identifies requests for provider polite pools.
+
+Without a Nebius key, discovery still works and relevance fields remain unassessed.
+
+## Run both services locally
+
+Requirements: Python 3.10+, `uv`, and Node.js 22.18+ or 24+.
+
+Install Python dependencies and start the backend from the repository root:
+
+```sh
+uv sync --dev
+uv run uvicorn scinapse.api:app --host 127.0.0.1 --port 8000
+```
+
+In a second terminal, start the frontend:
+
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+Open <http://127.0.0.1:5173>. Vite forwards `/api` to the backend on port 8000. Backend health is available at <http://127.0.0.1:8000/api/health>, and interactive API documentation is available at <http://127.0.0.1:8000/docs>.
+
+## API flow
+
+The frontend accepts a research question between 3 and 2,000 characters and one to ten seed DOIs. DOI URLs are normalized and duplicate seeds are removed.
+
+```text
+POST /api/explorations
+        |
+        v 202 Accepted + job id
+GET /api/explorations/{id}
+        |
+        v poll queued/running/completed/failed status
+GET /api/explorations/{id}/graph
+        |
+        v validated graph used by the explorer
+```
+
+Only one job runs at a time in this local implementation, and up to 20 completed jobs are retained in memory. Restarting the backend clears those sessions. A persistent queue and shared job store are needed before scaling beyond a single process.
+
+## Run the CLI pipeline
+
+The original CLI remains available for direct graph generation and validation:
+
+```sh
+# Build a small, inexpensive graph
 uv run scinapse build \
   --seed 10.1038/s41586-020-2649-2 \
   --question "How can machine learning improve scientific discovery?" \
   --out graph.json \
   --smoke
 
-# Skip Nebius assessments when an API key is unavailable
+# Skip Nebius assessments
 uv run scinapse build \
   --seed 10.1038/s41586-020-2649-2 \
   --question "How can machine learning improve scientific discovery?" \
@@ -89,71 +145,49 @@ uv run scinapse build \
 uv run scinapse check graph.json
 ```
 
-Set `NEBIUS_API_KEY` to enable Token Factory assessments. `S2_API_KEY` is optional. The command accepts multiple `--seed` values, for example:
+The build command also supports repeated `--seed`, `--layers`, `--top-k`, `--top-entry-n`, `--recent-min-year`, `--cache-dir`, `--chat-model`, `--embed-model`, and `--strict` options.
 
-```sh
-uv run scinapse build \
-  --seed 10.1038/s41586-020-2649-2 \
-  --seed 10.1126/science.aar6847 \
-  --question "What methods improve scientific discovery?" \
-  --out graph.json
-```
+## Run tests
 
-Run the network-free test suite with:
+The Python tests are network-free:
 
 ```sh
 uv run pytest
 ```
 
-## Run the frontend locally
-
-The frontend is a React and TypeScript application powered by Vite. It includes the repository's demo graph from `sample_response.large.json` and does not require a backend for the local demo.
+Frontend tests and the production build run inside `frontend`:
 
 ```sh
 cd frontend
-npm install
-npm run dev
-```
-
-Open the local URL printed by Vite. Other useful commands are:
-
-```sh
-npm run build
 npm test
+npm run build
 ```
-
-The interface supports paper search, seed selection, timeline filtering, relationship inspection, focus views, saved papers, local browser state, and graph export. See [frontend/README.md](frontend/README.md) for the full interaction guide.
 
 ## Run the frontend with Docker
 
-Build from the repository root so Docker can include `sample_response.large.json`:
+The image packages the static frontend and bundled example graph. It does not include the Python backend or a reverse proxy for live `/api` requests.
 
 ```sh
 docker build -f frontend/Dockerfile -t scinapse-frontend .
 docker run --rm -p 8080:80 scinapse-frontend
 ```
 
-Open <http://localhost:8080>. The image uses a multi-stage Node and Nginx build. The demo dataset is bundled at build time, so rebuild the image after changing `sample_response.large.json`.
+Open <http://localhost:8080>. Rebuild after changing the bundled `graph.json` example. For live search, run the FastAPI service separately and place an `/api` reverse proxy in front of it.
 
 ## Repository structure
 
 ```text
-src/scinapse/             Python discovery, enrichment, scoring, assessment, and validation pipeline
-frontend/                 React/Vite research graph explorer
-sample_response.json      Small graph contract example
-sample_response.large.json Demo frontend dataset
-tests/                    Network-free Python tests
-graph.json                Example/generated graph output
+src/scinapse/             Python pipeline, FastAPI service, CLI, and graph checker
+frontend/                 React/Vite explorer, API client, and Dockerfile
+tests/                    Network-free Python API and contract tests
+graph.json                Bundled frontend example graph
+sample_response.json      Graph contract example
+sample_response.large.json Legacy/large sample data used by earlier frontend builds
+.env.example              Backend configuration template
 ```
 
-## Deliverable and documentation
+## Deliverable and limitations
 
-The competition deliverable is a working research discovery experience with a public source repository, setup instructions, documented APIs and tools, and enough technical detail for evaluation. The repository contains the pipeline contract, checker, frontend interaction documentation, Docker packaging, and tests needed to inspect and run the project.
+The competition deliverable is a working research discovery experience with a public source repository, setup instructions, documented APIs and tools, and enough technical detail for jury evaluation. This repository includes the graph contract, checker, backend API, frontend interaction documentation, Docker packaging, and tests.
 
-All links and identities in the bundled demo graph are fictional placeholders. A production deployment should connect the pipeline output to a hosted backend and serve the frontend separately from the model endpoint, with API credentials stored in the deployment environment.
-
-
-# Quick Start
-
-
-Run the API and React application using [frontend/README.md](frontend/README.md). The backend remains available as `uv run scinapse build` and `uv run scinapse check`.
+The bundled graph uses fictional demo identities and links. The local server keeps jobs in memory and uses one worker to respect provider pacing. A production deployment should use a persistent job queue, durable result storage, hosted backend/frontend separation, and deployment-managed API credentials.
