@@ -1,2 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# scinapse run artifacts
+.scinapse_cache/
+graph*.json
+!graph.json
+
+# local secrets
+.env
+
+# Windows download-tracking stubs
+*:Zone.Identifier
 .claude
 .agents
